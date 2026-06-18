@@ -1,0 +1,22 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "src/index.ts",
+    "src/react/index.ts",
+    "src/contract/index.ts",
+    "scripts/*.ts"
+  ],
+  "project": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "scripts/**/*.ts",
+    "tests/**/*.ts"
+  ],
+  "ignoreDependencies": [
+    "eslint-config-prettier",
+    "eslint-plugin-simple-import-sort"
+  ],
+  "eslint": {
+    "config": ["eslint.config.mjs"]
+  }
+}

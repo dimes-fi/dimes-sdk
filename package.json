@@ -1,0 +1,143 @@
+{
+  "name": "@dimes-dot-fi/sdk",
+  "version": "1.5.0",
+  "description": "TypeScript SDK for the Dimes prediction market API",
+  "license": "MIT",
+  "homepage": "https://github.com/bloom-art/dimes-sdk#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bloom-art/dimes-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bloom-art/dimes-sdk/issues"
+  },
+  "keywords": [
+    "dimes",
+    "prediction-markets",
+    "sdk",
+    "typescript",
+    "react",
+    "viem",
+    "web3"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./react": {
+      "import": {
+        "types": "./dist/react/index.d.ts",
+        "default": "./dist/react/index.mjs"
+      },
+      "require": {
+        "types": "./dist/react/index.d.cts",
+        "default": "./dist/react/index.cjs"
+      }
+    },
+    "./contract": {
+      "import": {
+        "types": "./dist/contract/index.d.ts",
+        "default": "./dist/contract/index.mjs"
+      },
+      "require": {
+        "types": "./dist/contract/index.d.cts",
+        "default": "./dist/contract/index.cjs"
+      }
+    },
+    "./ws": {
+      "import": {
+        "types": "./dist/ws/index.d.ts",
+        "default": "./dist/ws/index.mjs"
+      },
+      "require": {
+        "types": "./dist/ws/index.d.cts",
+        "default": "./dist/ws/index.cjs"
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "generate:types": "tsx scripts/generate-types.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src tests && prettier --check src tests scripts",
+    "lint:fix": "eslint --fix src tests && prettier --write src tests scripts",
+    "format": "prettier --write src tests scripts",
+    "format:check": "prettier --check src tests scripts",
+    "knip": "knip",
+    "prepublishOnly": "pnpm lint:fix && pnpm typecheck && pnpm test && pnpm build",
+    "release": "pnpm version patch && npm publish --access public",
+    "release:minor": "pnpm version minor && npm publish --access public",
+    "release:major": "pnpm version major && npm publish --access public"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": ">=5",
+    "react": ">=19",
+    "viem": ">=2"
+  },
+  "peerDependenciesMeta": {
+    "@tanstack/react-query": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "viem": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@eslint/compat": "^2.0.0",
+    "@eslint/eslintrc": "^3.3.0",
+    "@eslint/js": "^10.0.0",
+    "@tanstack/react-query": "^5.0.0",
+    "@types/humps": "^2.0.6",
+    "@types/react": "^19.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^10.0.0",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-better-max-params": "^1.0.0",
+    "eslint-plugin-check-file": "^2.0.0",
+    "eslint-plugin-import-x": "^4.0.0",
+    "eslint-plugin-simple-import-sort": "^12.0.0",
+    "globals": "^17.0.0",
+    "knip": "^6.4.0",
+    "openapi-typescript": "^7.0.0",
+    "prettier": "^3.8.0",
+    "react": "^19.0.0",
+    "tsup": "^8.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.8.0",
+    "viem": "^2.0.0",
+    "vitest": "^4.1.5"
+  },
+  "dependencies": {
+    "humps": "^2.0.1",
+    "socket.io-client": "^4.8.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "unrs-resolver"
+    ]
+  }
+}
