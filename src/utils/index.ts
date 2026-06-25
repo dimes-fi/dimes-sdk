@@ -34,3 +34,13 @@ export {
 } from "./max-gain";
 
 export type { MaxGainInput, MaxGainResult, PolymarketTradingFeeInput } from "./max-gain";
+
+export {
+  tokenUnitsPerToken,
+  partialCloseMinTokens,
+  partialCloseMinFractionBps,
+  closeTokenUnitsForPct,
+  pctBpsForCloseTokenUnits,
+  fallbackMinPartialCloseTokenUnits,
+  clampCloseTokenUnits,
+} from "./partial-close";

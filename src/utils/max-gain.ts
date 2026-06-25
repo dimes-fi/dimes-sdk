@@ -5,7 +5,7 @@ const TOKEN_UNITS_PER_TOKEN = 1_000_000;
 /**
  * Inputs to the Polymarket trading-fee curve. All rates are basis points; the
  * caller fetches `feeRateBps`, `feeExponent`, and `builderTakerFeeRateBps` from
- * the `fee-rates` API (snapshotted server-side as `Offer.polymarketFeeRateBps`
+ * the `fee-rates` API (snapshotted server-side as `Quote.polymarketFeeRateBps`
  * / `polymarketFeeExponent` / `polymarketBuilderFeeRateBps`).
  */
 export interface PolymarketTradingFeeInput {
@@ -58,7 +58,7 @@ export function computePolymarketTradingFee(input: PolymarketTradingFeeInput): n
  * at $1 on a win, so token units are numerically equal to USDC units.
  *
  * `tokens = notionalUsd / entryPrice`, then scaled down by `slippageBps`.
- * Floored to whole token units. This is an at-quote estimate of the offer's
+ * Floored to whole token units. This is an at-quote estimate of the quote's
  * `minExpectedPositionTokenUnits`; the server is authoritative.
  */
 export function expectedPositionTokenUnits(notionalUsdcUnits: number, entryPriceUsd: number, slippageBps = 0): number {
