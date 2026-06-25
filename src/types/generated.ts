@@ -390,6 +390,11 @@ export interface components {
        */
       polygon_signer_address: string;
       /**
+       * @description Checksummed address of the stablecoin (pUSD) token that collateral must be transferred in. Use this when building the push deposit transfer — sending any other token (e.g. USDC.e) will fail.
+       * @example 0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB
+       */
+      polygon_usdc_token_address: string;
+      /**
        * @description Checksummed address of the vault contract on Polygon
        * @example 0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc
        */
@@ -1074,6 +1079,24 @@ export interface components {
        * @example 2026-06-15T17:27:11.736Z
        */
       deferred_at: string;
+    };
+    CustomerPendingOperation: {
+      /**
+       * @description The lifecycle operation currently in flight on this position. Present whenever the position is mid-operation (open, close, partial close, unwind, liquidate, or settle); null when the position is at rest. Note `status` stays `open` throughout a `partial_close`, so this is the only signal a slice is in flight after a reload.
+       * @enum {string}
+       */
+      type: "open" | "close" | "partial_close" | "unwind" | "liquidate" | "settle";
+      /**
+       * @description Sub-state of the operation: `requested` (submitted, not yet executing), `initiated` (executing on the venue), `pending` (tokens withdrawn, finalizing on chain), `awaiting_settlement` (a close deferred until the market settles). Null when the operation has no distinct phase.
+       * @example initiated
+       * @enum {string|null}
+       */
+      phase?: "requested" | "initiated" | "pending" | "awaiting_settlement" | null;
+      /**
+       * @description Token units involved in the in-flight operation (1000000 units = 1 token). For `partial_close` this is the slice being closed; for `close`/`liquidate` the units withdrawn; for the awaiting-settlement close the remaining tokens. Null when the operation carries no specific token amount.
+       * @example 5000000
+       */
+      token_units?: string | null;
     };
     CustomerPositionCurrent: {
       /**

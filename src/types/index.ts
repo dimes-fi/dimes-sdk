@@ -9,6 +9,8 @@ export type {
   MarketPrices,
   MarketPolymarket,
   OriginationTier,
+  Quote,
+  // eslint-disable-next-line @typescript-eslint/no-deprecated -- re-export of intentional back-compat alias
   Offer,
   OpenPosition,
   ClosedPosition,
@@ -22,6 +24,7 @@ export type {
   PositionTiming,
   PositionFailure,
   CloseAttempt,
+  PendingOperation,
   PositionUnwind,
   PositionUnwindList,
   PositionTransactionEntry,
@@ -29,6 +32,8 @@ export type {
   PositionTransactions,
   ContractInfo,
   CustomerLimit,
+  CreateQuoteParams,
+  // eslint-disable-next-line @typescript-eslint/no-deprecated -- re-export of intentional back-compat alias
   CreateOfferParams,
   CreateTokenResult,
   FeeRates,
