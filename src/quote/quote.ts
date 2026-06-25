@@ -1,26 +1,26 @@
 import { DimesApiError, DimesError } from "../errors/dimes-error";
-import type { CreateOfferParams, Offer } from "../types";
+import type { CreateQuoteParams, Quote } from "../types";
 import type { QuoteOptions, QuoteParams, QuoteResult } from "../types/quote";
 import { buildQuoteParams } from "./build-quote-params";
 import { type HintAdjustment, hintAdjustment, marketMovedCodes, quoteErrorHint } from "./quote-error-hints";
 
 export interface QuoteClient {
-  createDraftQuote(params: CreateOfferParams): Promise<Offer>;
-  promoteDraftQuote(draftId: string): Promise<Offer>;
-  createQuote(params: CreateOfferParams): Promise<Offer>;
+  createDraftQuote(params: CreateQuoteParams): Promise<Quote>;
+  promoteDraftQuote(draftId: string): Promise<Quote>;
+  createQuote(params: CreateQuoteParams): Promise<Quote>;
 }
 
 const DEFAULT_MAX_RETRIES = 3;
 
-function isMarketMovedError(err: unknown): boolean {
+export function isMarketMovedError(err: unknown): boolean {
   return err instanceof DimesApiError && marketMovedCodes.has(err.code);
 }
 
 function applyAdjustment(
-  params: CreateOfferParams,
+  params: CreateQuoteParams,
   adj: NonNullable<HintAdjustment>,
   currentParams: QuoteParams,
-): CreateOfferParams {
+): CreateQuoteParams {
   switch (adj.field) {
     case "collateral": {
       const notionalUsdPips = Math.round(adj.toValue * params.leverageBps);
@@ -36,6 +36,8 @@ function applyAdjustment(
     }
     case "slippage":
       return { ...params, slippageBps: adj.toValue };
+    case "minFill":
+      return { ...params, allowPartialFill: true, minFillBps: adj.toValue };
     default:
       return params;
   }
@@ -58,6 +60,7 @@ function handleCorrection(err: unknown, currentParams: QuoteParams): { adj: NonN
     collateralUsd: currentParams.collateralUsd,
     leverageBps: currentParams.leverageBps,
     slippageBps: currentParams.slippageBps,
+    minFillBps: currentParams.minFillBps,
   });
 
   if (!adj) {
@@ -78,21 +81,21 @@ export async function executeQuote(
   const corrections: NonNullable<HintAdjustment>[] = [];
   let retries = 0;
 
-  let offerParams = buildQuoteParams(params);
+  let quoteParams = buildQuoteParams(params);
   const currentParams = { ...params };
 
-  const draft = await client.createDraftQuote(offerParams);
+  const draft = await client.createDraftQuote(quoteParams);
   options?.onDraftReady?.(draft);
 
-  let currentDraft: Offer = draft;
+  let currentDraft: Quote = draft;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      const promotedOffer = await client.promoteDraftQuote(currentDraft.id);
-      return { offer: promotedOffer, corrections, retries };
+      const promotedQuote = await client.promoteDraftQuote(currentDraft.id);
+      return { quote: promotedQuote, offer: promotedQuote, corrections, retries };
     } catch (err) {
       if (handleMarketMoved(err, attempt, maxRetries)) {
-        const newDraft = await client.createDraftQuote(offerParams);
+        const newDraft = await client.createDraftQuote(quoteParams);
         retries++;
 
         const callbackResult = options?.onMarketMoved?.({
@@ -118,11 +121,11 @@ export async function executeQuote(
             throw err;
           }
 
-          offerParams = applyAdjustment(offerParams, correction.adj, currentParams);
+          quoteParams = applyAdjustment(quoteParams, correction.adj, currentParams);
           corrections.push(correction.adj);
 
-          const correctedOffer = await client.createQuote(offerParams);
-          return { offer: correctedOffer, corrections, retries };
+          const correctedQuote = await client.createQuote(quoteParams);
+          return { quote: correctedQuote, offer: correctedQuote, corrections, retries };
         }
       }
 

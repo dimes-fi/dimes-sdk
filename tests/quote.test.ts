@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
 import { DimesApiError } from "../src/errors/dimes-error";
 import { executeQuote, type QuoteClient } from "../src/quote/quote";
-import type { Offer } from "../src/types";
+import type { Quote } from "../src/types";
 
-function mockOffer(overrides: Partial<Offer> = {}): Offer {
+function mockQuote(overrides: Partial<Quote> = {}): Quote {
   return {
     id: "dm_off_123",
     authorityPublicKey: "0x1234",
@@ -58,9 +58,9 @@ function mockOffer(overrides: Partial<Offer> = {}): Offer {
 
 function mockClient(overrides: Partial<QuoteClient> = {}): QuoteClient {
   return {
-    createDraftQuote: vi.fn().mockImplementation(() => Promise.resolve(mockOffer({ id: "dm_dro_draft" }))),
-    promoteDraftQuote: vi.fn().mockImplementation(() => Promise.resolve(mockOffer({ id: "dm_off_promoted" }))),
-    createQuote: vi.fn().mockImplementation(() => Promise.resolve(mockOffer({ id: "dm_off_corrected" }))),
+    createDraftQuote: vi.fn().mockImplementation(() => Promise.resolve(mockQuote({ id: "dm_dro_draft" }))),
+    promoteDraftQuote: vi.fn().mockImplementation(() => Promise.resolve(mockQuote({ id: "dm_off_promoted" }))),
+    createQuote: vi.fn().mockImplementation(() => Promise.resolve(mockQuote({ id: "dm_off_corrected" }))),
     ...overrides,
   };
 }
@@ -80,7 +80,7 @@ describe("executeQuote", () => {
 
     expect(client.createDraftQuote).toHaveBeenCalledOnce();
     expect(client.promoteDraftQuote).toHaveBeenCalledWith("dm_dro_draft");
-    expect(result.offer.id).toBe("dm_off_promoted");
+    expect(result.quote.id).toBe("dm_off_promoted");
     expect(result.corrections).toHaveLength(0);
     expect(result.retries).toBe(0);
   });
@@ -105,13 +105,13 @@ describe("executeQuote", () => {
           params: null,
         }),
       )
-      .mockResolvedValueOnce(mockOffer({ id: "dm_off_retry" }));
+      .mockResolvedValueOnce(mockQuote({ id: "dm_off_retry" }));
 
     const client = mockClient({ promoteDraftQuote: promoteMock });
     const onMarketMoved = vi.fn();
     const result = await executeQuote(client, params, { onMarketMoved });
 
-    expect(result.offer.id).toBe("dm_off_retry");
+    expect(result.quote.id).toBe("dm_off_retry");
     expect(result.retries).toBe(1);
     expect(onMarketMoved).toHaveBeenCalledOnce();
   });
@@ -147,12 +147,34 @@ describe("executeQuote", () => {
     const onCorrection = vi.fn();
     const result = await executeQuote(client, { ...params, leverageBps: 50000 }, { onCorrection });
 
-    expect(result.offer.id).toBe("dm_off_corrected");
+    expect(result.quote.id).toBe("dm_off_corrected");
     expect(result.corrections).toHaveLength(1);
     expect(result.corrections[0]!.field).toBe("leverage");
     expect(result.corrections[0]!.toValue).toBe(30000);
     expect(onCorrection).toHaveBeenCalledOnce();
     expect(client.createQuote).toHaveBeenCalledOnce();
+  });
+
+  it("auto-corrects min-fill by enabling partial fill", async () => {
+    const promoteMock = vi.fn().mockRejectedValue(
+      new DimesApiError({
+        status: 400,
+        code: "quote_min_fill_bps_below_floor",
+        type: "invalid_request_error",
+        message: "min fill too low",
+        params: { floorMinFillBps: 3000 },
+      }),
+    );
+
+    const client = mockClient({ promoteDraftQuote: promoteMock });
+    const result = await executeQuote(client, { ...params, allowPartialFill: true, minFillBps: 2000 });
+
+    expect(result.corrections).toHaveLength(1);
+    expect(result.corrections[0]!.field).toBe("minFill");
+    expect(result.corrections[0]!.toValue).toBe(3000);
+    expect(client.createQuote).toHaveBeenCalledWith(
+      expect.objectContaining({ allowPartialFill: true, minFillBps: 3000 }),
+    );
   });
 
   it("throws non-correctable errors", async () => {

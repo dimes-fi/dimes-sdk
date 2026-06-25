@@ -53,6 +53,34 @@ describe("buildQuoteParams", () => {
     expect(result.leverageBps).toBe(15000);
   });
 
+  it("omits partial-fill fields when not provided", () => {
+    const result = buildQuoteParams({
+      marketTicker: "ETH-10K",
+      side: "yes",
+      collateralUsd: 10,
+      leverageBps: 50000,
+      slippageBps: 300,
+    });
+
+    expect(result.allowPartialFill).toBeUndefined();
+    expect(result.minFillBps).toBeUndefined();
+  });
+
+  it("passes partial-fill fields through when provided", () => {
+    const result = buildQuoteParams({
+      marketTicker: "ETH-10K",
+      side: "yes",
+      collateralUsd: 10,
+      leverageBps: 50000,
+      slippageBps: 300,
+      allowPartialFill: true,
+      minFillBps: 2500,
+    });
+
+    expect(result.allowPartialFill).toBe(true);
+    expect(result.minFillBps).toBe(2500);
+  });
+
   it("passes marketTicker and effectiveSide through", () => {
     const result = buildQuoteParams({
       marketTicker: "ETH-10K",

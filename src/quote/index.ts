@@ -1,4 +1,4 @@
-export { executeQuote } from "./quote";
+export { executeQuote, isMarketMovedError } from "./quote";
 
 export type { QuoteClient } from "./quote";
 
