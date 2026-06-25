@@ -6,17 +6,18 @@ import {
   buildRelayerAuthHeaders,
   buildRelayerSubmitPayload,
   buildRequestCloseCalls,
+  buildRequestPartialCloseCalls,
   depositWalletFactoryAddress,
   getDepositWalletBatchTypedData,
 } from "../src/contract/deposit-wallet";
-import type { Offer } from "../src/types";
+import type { Quote } from "../src/types";
 
 const vaultAddress = getAddress("0x5323fe5a5cd7eccc0ef96761c313e6fab4c324cd");
 const pUsdAddress = getAddress("0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb");
 const depositWalletAddress = getAddress("0x95112e5392e0a03ad9290a04ea4e561dd7447355");
 const ownerAddress = getAddress("0x89fa517528ad7aa188fcb7cee43a7c5b642a8327");
 
-function mockOffer(overrides: Partial<Offer> = {}): Offer {
+function mockQuote(overrides: Partial<Quote> = {}): Quote {
   return {
     polygonVaultContractAddress: vaultAddress,
     positionSeedHex: "0x0123456789abcdef0123456789abcdef",
@@ -33,12 +34,12 @@ function mockOffer(overrides: Partial<Offer> = {}): Offer {
     signatureExpiry: "1700000000",
     totalUserAmountUsdcUnits: "2030000",
     ...overrides,
-  } as Offer;
+  } as Quote;
 }
 
 describe("buildPushFundedCreateCalls", () => {
   it("builds the 3-call batch in order: reserveDeposit, transfer, createPositionPushFunded", () => {
-    const calls = buildPushFundedCreateCalls(mockOffer(), pUsdAddress);
+    const calls = buildPushFundedCreateCalls(mockQuote(), pUsdAddress);
 
     expect(calls).toHaveLength(3);
 
@@ -77,7 +78,7 @@ describe("buildPushFundedCreateCalls", () => {
   });
 
   it("targets the vault, pUSD, then the vault", () => {
-    const calls = buildPushFundedCreateCalls(mockOffer(), pUsdAddress);
+    const calls = buildPushFundedCreateCalls(mockQuote(), pUsdAddress);
     expect(calls[0].target).toBe(vaultAddress);
     expect(calls[1].target).toBe(pUsdAddress);
     expect(calls[2].target).toBe(vaultAddress);
@@ -85,7 +86,7 @@ describe("buildPushFundedCreateCalls", () => {
   });
 
   it("funds reservation and transfer with the same totalUserAmount", () => {
-    const calls = buildPushFundedCreateCalls(mockOffer(), pUsdAddress);
+    const calls = buildPushFundedCreateCalls(mockQuote(), pUsdAddress);
     expect(calls[0].data.slice(10)).toBe(calls[1].data.slice(-64));
   });
 });
@@ -97,6 +98,35 @@ describe("buildRequestCloseCalls", () => {
     expect(calls).toHaveLength(1);
     expect(calls[0].target).toBe(vaultAddress);
     expect(calls[0].value).toBe(0n);
+  });
+});
+
+describe("buildRequestPartialCloseCalls", () => {
+  const positionKey = "0x2222222222222222222222222222222222222222222222222222222222222222";
+
+  it("builds a single requestPartialClose call carrying the slice", () => {
+    const calls = buildRequestPartialCloseCalls(vaultAddress, positionKey, 5_000_000n);
+    expect(calls).toHaveLength(1);
+    expect(calls[0].target).toBe(vaultAddress);
+    expect(calls[0].value).toBe(0n);
+
+    const decoded = decodeFunctionData({
+      abi: [
+        {
+          type: "function",
+          name: "requestPartialClose",
+          stateMutability: "nonpayable",
+          inputs: [
+            { name: "positionKey", type: "bytes32" },
+            { name: "closeTokenUnits", type: "uint256" },
+          ],
+          outputs: [],
+        },
+      ],
+      data: calls[0].data,
+    });
+    expect(decoded.functionName).toBe("requestPartialClose");
+    expect(decoded.args).toEqual([positionKey, 5_000_000n]);
   });
 });
 
@@ -129,7 +159,7 @@ describe("buildDepositWalletBatch / typed data", () => {
 
 describe("buildRelayerSubmitPayload", () => {
   it("builds the WALLET-typed relayer body", () => {
-    const calls = buildPushFundedCreateCalls(mockOffer(), pUsdAddress);
+    const calls = buildPushFundedCreateCalls(mockQuote(), pUsdAddress);
     const batch = buildDepositWalletBatch({
       depositWalletAddress,
       nonce: 3n,

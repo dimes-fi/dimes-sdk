@@ -1,5 +1,5 @@
 import { encodeFunctionData } from "viem";
-import type { Offer } from "../types";
+import type { Quote } from "../types";
 import { vaultAbi } from "./abi";
 import { toAddress, toHex, type Address, type Hex } from "./evm";
 
@@ -102,15 +102,15 @@ const erc20TransferAbi = [
 /**
  * Build the three inner calls for a push-funded `createPosition`.
  *
- * The relayer submits these atomically; `offer.totalUserAmountUsdcUnits` is the
+ * The relayer submits these atomically; `quote.totalUserAmountUsdcUnits` is the
  * contract-ready amount (collateral + fees) used for both the reservation and the transfer.
  *
- * @param offer - the signed offer returned by the quote endpoint
+ * @param quote - the signed quote returned by the quote endpoint
  * @param pUsdAddress - the pUSD (USDC) token address (from `GET /contract-info`)
  */
-export function buildPushFundedCreateCalls(offer: Offer, pUsdAddress: string): DepositWalletCall[] {
-  const vaultAddress = toAddress(offer.polygonVaultContractAddress);
-  const totalUserAmountUsdcUnits = BigInt(offer.totalUserAmountUsdcUnits);
+export function buildPushFundedCreateCalls(quote: Quote, pUsdAddress: string): DepositWalletCall[] {
+  const vaultAddress = toAddress(quote.polygonVaultContractAddress);
+  const totalUserAmountUsdcUnits = BigInt(quote.totalUserAmountUsdcUnits);
 
   const reserveDepositData = encodeFunctionData({
     abi: reserveDepositAbi,
@@ -128,18 +128,18 @@ export function buildPushFundedCreateCalls(offer: Offer, pUsdAddress: string): D
     abi: createPositionPushFundedAbi,
     functionName: "createPositionPushFunded",
     args: [
-      toHex(offer.positionSeedHex),
-      toHex(offer.polymarketMarketId),
-      BigInt(offer.polymarketTokenId),
-      BigInt(offer.collateralUsdcUnits),
-      offer.leverageBps,
-      BigInt(offer.notionalUsdcUnits),
-      offer.originationFeeBps,
-      offer.lifetimeFeeAprBps,
-      offer.liquidationFeeBps,
-      BigInt(offer.expectedOpenTradingFeeUsdcUnits),
-      toHex(offer.contractSignature),
-      BigInt(offer.signatureExpiry),
+      toHex(quote.positionSeedHex),
+      toHex(quote.polymarketMarketId),
+      BigInt(quote.polymarketTokenId),
+      BigInt(quote.collateralUsdcUnits),
+      quote.leverageBps,
+      BigInt(quote.notionalUsdcUnits),
+      quote.originationFeeBps,
+      quote.lifetimeFeeAprBps,
+      quote.liquidationFeeBps,
+      BigInt(quote.expectedOpenTradingFeeUsdcUnits),
+      toHex(quote.contractSignature),
+      BigInt(quote.signatureExpiry),
     ],
   });
 
@@ -164,6 +164,27 @@ export function buildRequestCloseCalls(vaultAddress: string, positionKey: string
   });
 
   return [{ target: toAddress(vaultAddress), value: 0n, data: closeData }];
+}
+
+/**
+ * Build the single inner call for a deposit-wallet `requestPartialClose`.
+ *
+ * @param vaultAddress - the vault contract address
+ * @param positionKey - the `on_chain_position_key` field from `GET /positions`
+ * @param closeTokenUnits - the slice to close, in token units (1000000 units = 1 token)
+ */
+export function buildRequestPartialCloseCalls(
+  vaultAddress: string,
+  positionKey: string,
+  closeTokenUnits: bigint,
+): DepositWalletCall[] {
+  const partialCloseData = encodeFunctionData({
+    abi: vaultAbi,
+    functionName: "requestPartialClose",
+    args: [toHex(positionKey), closeTokenUnits],
+  });
+
+  return [{ target: toAddress(vaultAddress), value: 0n, data: partialCloseData }];
 }
 
 interface BuildBatchParams {

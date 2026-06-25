@@ -1,7 +1,7 @@
 import { recoverTypedDataAddress, getAddress } from "viem";
 import type { DimesClient } from "../client/dimes-client";
 import { DimesContractError } from "../errors/dimes-error";
-import type { ContractInfo, Offer } from "../types";
+import type { ContractInfo, Quote } from "../types";
 import { toHex, toAddress } from "./evm";
 
 const createPositionTypes = {
@@ -21,31 +21,31 @@ const createPositionTypes = {
   ],
 } as const;
 
-export async function recoverCreatePositionSigner(offer: Offer, userAddress: `0x${string}`): Promise<`0x${string}`> {
+export async function recoverCreatePositionSigner(quote: Quote, userAddress: `0x${string}`): Promise<`0x${string}`> {
   return recoverTypedDataAddress({
     domain: {
       name: "LeveragedPredictionVaultV1",
       version: "1",
-      chainId: Number(offer.evmChainId),
-      verifyingContract: toAddress(offer.polygonVaultContractAddress),
+      chainId: Number(quote.evmChainId),
+      verifyingContract: toAddress(quote.polygonVaultContractAddress),
     },
     types: createPositionTypes,
     primaryType: "CreatePosition",
     message: {
-      positionSeed: toHex(offer.positionSeedHex),
+      positionSeed: toHex(quote.positionSeedHex),
       user: userAddress,
-      marketId: toHex(offer.polymarketMarketId),
-      tokenId: BigInt(offer.polymarketTokenId),
-      collateralUsdcUnits: BigInt(offer.collateralUsdcUnits),
-      leverageBps: offer.leverageBps,
-      notionalUsdcUnits: BigInt(offer.notionalUsdcUnits),
-      originationFeeBps: offer.originationFeeBps,
-      lifetimeFeeAprBps: offer.lifetimeFeeAprBps,
-      liquidationFeeBps: offer.liquidationFeeBps,
-      venueFeeUsdcUnits: BigInt(offer.expectedOpenTradingFeeUsdcUnits),
-      signatureExpiry: BigInt(offer.signatureExpiry),
+      marketId: toHex(quote.polymarketMarketId),
+      tokenId: BigInt(quote.polymarketTokenId),
+      collateralUsdcUnits: BigInt(quote.collateralUsdcUnits),
+      leverageBps: quote.leverageBps,
+      notionalUsdcUnits: BigInt(quote.notionalUsdcUnits),
+      originationFeeBps: quote.originationFeeBps,
+      lifetimeFeeAprBps: quote.lifetimeFeeAprBps,
+      liquidationFeeBps: quote.liquidationFeeBps,
+      venueFeeUsdcUnits: BigInt(quote.expectedOpenTradingFeeUsdcUnits),
+      signatureExpiry: BigInt(quote.signatureExpiry),
     },
-    signature: toHex(offer.contractSignature),
+    signature: toHex(quote.contractSignature),
   });
 }
 
@@ -53,26 +53,57 @@ export function resolveExpectedSigner(apiSigner: string | undefined): `0x${strin
   return apiSigner ? getAddress(apiSigner) : undefined;
 }
 
+/**
+ * Recover the quote's contract signer and assert it matches `expectedSigner`,
+ * throwing `DimesContractError("invalid_signer")` on mismatch.
+ *
+ * Use this when you already hold the authorized signer address (e.g. from a cached
+ * `GET /contract-info` query) and don't want to plumb a {@link DimesClient} through.
+ * {@link verifyQuoteSignature} is the client-based convenience that fetches and caches
+ * the signer for you, then delegates here.
+ */
+export async function assertQuoteSigner(
+  quote: Quote,
+  userAddress: `0x${string}`,
+  expectedSigner: `0x${string}`,
+): Promise<void> {
+  const recoveredSigner = await recoverCreatePositionSigner(quote, userAddress);
+  const expected = getAddress(expectedSigner);
+
+  if (recoveredSigner !== expected) {
+    throw new DimesContractError(
+      "invalid_signer",
+      `Recovered signer ${recoveredSigner} does not match expected authority ${expected}`,
+    );
+  }
+}
+
 const contractInfoCache = new WeakMap<DimesClient, ContractInfo>();
 
-export async function verifyOfferSignature(
-  client: DimesClient,
-  offer: Offer,
-  userAddress: `0x${string}`,
-): Promise<void> {
+/**
+ * Fetch `GET /contract-info` once per {@link DimesClient} and cache it. Use this to read
+ * any on-chain config (signer, vault, pUSD token address) without re-hitting the API.
+ */
+export async function getCachedContractInfo(client: DimesClient): Promise<ContractInfo> {
   let info = contractInfoCache.get(client);
   if (!info) {
     info = await client.getContractInfo();
     contractInfoCache.set(client, info);
   }
 
-  const recoveredSigner = await recoverCreatePositionSigner(offer, userAddress);
-  const expectedSigner = getAddress(info.polygonSignerAddress);
-
-  if (recoveredSigner !== expectedSigner) {
-    throw new DimesContractError(
-      "invalid_signer",
-      `Recovered signer ${recoveredSigner} does not match expected authority ${expectedSigner}`,
-    );
-  }
+  return info;
 }
+
+export async function verifyQuoteSignature(
+  client: DimesClient,
+  quote: Quote,
+  userAddress: `0x${string}`,
+): Promise<void> {
+  const info = await getCachedContractInfo(client);
+
+  await assertQuoteSigner(quote, userAddress, getAddress(info.polygonSignerAddress));
+}
+
+/** @deprecated Renamed to {@link verifyQuoteSignature}. Kept as an alias for backward compatibility. */
+// eslint-disable-next-line no-restricted-syntax -- intentional deprecated alias
+export const verifyOfferSignature = verifyQuoteSignature;
