@@ -41,7 +41,7 @@ describe("ApiKeyAuth", () => {
         method: "POST",
         headers: expect.objectContaining({
           "Content-Type": "application/json",
-          Authorization: "Bearer test-api-key",
+          Authorization: "Api-Key test-api-key",
         }),
         body: JSON.stringify({ wallet_address: "0xabc" }),
       }),

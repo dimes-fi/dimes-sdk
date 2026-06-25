@@ -5,7 +5,10 @@ export type {
   GetFeeRatesParams,
   GetMarketsParams,
   GetPositionsParams,
+  MarketExpand,
   MarketSort,
+  PositionStatus,
+  SearchMarketsParams,
 } from "./dimes-client";
 
 export { ApiKeyAuth, JwtAuth } from "./auth";

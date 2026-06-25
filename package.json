@@ -3,13 +3,13 @@
   "version": "1.5.0",
   "description": "TypeScript SDK for the Dimes prediction market API",
   "license": "MIT",
-  "homepage": "https://github.com/bloom-art/dimes-sdk#readme",
+  "homepage": "https://github.com/dimes-fi/dimes-sdk#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bloom-art/dimes-sdk.git"
+    "url": "git+https://github.com/dimes-fi/dimes-sdk.git"
   },
   "bugs": {
-    "url": "https://github.com/bloom-art/dimes-sdk/issues"
+    "url": "https://github.com/dimes-fi/dimes-sdk/issues"
   },
   "keywords": [
     "dimes",
@@ -71,6 +71,7 @@
     "build": "tsup",
     "generate:types": "tsx scripts/generate-types.ts",
     "typecheck": "tsc --noEmit",
+    "examples:typecheck": "tsc --noEmit -p examples/tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -79,7 +80,7 @@
     "format": "prettier --write src tests scripts",
     "format:check": "prettier --check src tests scripts",
     "knip": "knip",
-    "prepublishOnly": "pnpm lint:fix && pnpm typecheck && pnpm test && pnpm build",
+    "prepublishOnly": "pnpm lint:fix && pnpm typecheck && pnpm examples:typecheck && pnpm test && pnpm build",
     "release": "pnpm version patch && npm publish --access public",
     "release:minor": "pnpm version minor && npm publish --access public",
     "release:major": "pnpm version major && npm publish --access public"
@@ -106,6 +107,7 @@
     "@eslint/js": "^10.0.0",
     "@tanstack/react-query": "^5.0.0",
     "@types/humps": "^2.0.6",
+    "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",

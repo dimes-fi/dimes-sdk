@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2024",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
+    "types": ["node"],
+    "jsx": "react-jsx",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@dimes-dot-fi/sdk": ["../src/index.ts"],
+      "@dimes-dot-fi/sdk/react": ["../src/react/index.ts"],
+      "@dimes-dot-fi/sdk/contract": ["../src/contract/index.ts"],
+      "@dimes-dot-fi/sdk/ws": ["../src/ws/index.ts"]
+    }
+  },
+  "include": ["."]
+}

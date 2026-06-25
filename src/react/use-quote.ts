@@ -1,7 +1,7 @@
 import { useCallback, useReducer } from "react";
 import { executeQuote } from "../quote/quote";
 import type { HintAdjustment } from "../quote/quote-error-hints";
-import type { Offer } from "../types";
+import type { Quote } from "../types";
 import type { QuoteOptions, QuoteParams, QuoteResult } from "../types/quote";
 import { useDimesClient } from "./provider";
 
@@ -9,8 +9,11 @@ export type QuotePhase = "idle" | "loading-draft" | "draft-ready" | "promoting" 
 
 export interface QuoteState {
   phase: QuotePhase;
-  draft?: Offer;
-  offer?: Offer;
+  draft?: Quote;
+  quote?: Quote;
+  /** @deprecated Renamed to {@link QuoteState.quote}. Still populated for backward compatibility. */
+  // eslint-disable-next-line no-restricted-syntax -- intentional deprecated alias field
+  offer?: Quote;
   corrections: HintAdjustment[];
   retries: number;
   error?: unknown;
@@ -18,7 +21,7 @@ export interface QuoteState {
 
 type Action =
   | { type: "loading" }
-  | { type: "draftReady"; draft: Offer }
+  | { type: "draftReady"; draft: Quote }
   | { type: "promoting" }
   | { type: "marketMoved" }
   | { type: "done"; result: QuoteResult }
@@ -38,7 +41,8 @@ function reducer(state: QuoteState, action: Action): QuoteState {
     case "done":
       return {
         phase: "promoted",
-        offer: action.result.offer,
+        quote: action.result.quote,
+        offer: action.result.quote,
         corrections: action.result.corrections,
         retries: action.result.retries,
         draft: state.draft,

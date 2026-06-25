@@ -26,7 +26,11 @@ export interface MarketPolymarket {
 
 export type OriginationTier = CamelizeKeys<Raw["CustomerOriginationTier"]>;
 
-export type Offer = CamelizeKeys<Raw["CustomerOffer"]>;
+export type Quote = CamelizeKeys<Raw["CustomerOffer"]>;
+
+/** @deprecated Use {@link Quote}. Back-compat alias; removed in a future major. */
+// eslint-disable-next-line no-restricted-syntax -- intentional deprecated alias
+export type Offer = Quote;
 
 export type OpenPosition = CamelizeKeys<Raw["CustomerOpenPosition"]>;
 
@@ -52,6 +56,8 @@ export type PositionFailure = CamelizeKeys<Raw["CustomerPositionFailure"]>;
 
 export type CloseAttempt = CamelizeKeys<Raw["CustomerCloseAttempt"]>;
 
+export type PendingOperation = CamelizeKeys<Raw["CustomerPendingOperation"]>;
+
 export type PositionUnwind = CamelizeKeys<Raw["CustomerPositionUnwind"]>;
 
 export type PositionUnwindList = CamelizeKeys<Raw["CustomerPositionUnwindList"]>;
@@ -76,14 +82,20 @@ export type FeeRates = CamelizeKeys<Raw["CustomerFeeRates"]>;
 
 export type FeeReport = CamelizeKeys<Raw["CustomerFeeReport"]>;
 
-export interface CreateOfferParams {
+export interface CreateQuoteParams {
   marketTicker: string;
   effectiveSide: "yes" | "no";
   leverageBps: number;
   notionalAmountUsdPips: string;
   slippageBps: number;
   pmProvider?: "polymarket" | "kalshi";
+  allowPartialFill?: boolean;
+  minFillBps?: number;
 }
+
+/** @deprecated Renamed to {@link CreateQuoteParams}. Kept as an alias for backward compatibility. */
+// eslint-disable-next-line no-restricted-syntax -- intentional deprecated alias
+export type CreateOfferParams = CreateQuoteParams;
 
 export interface FeeReportParams {
   marketTicker: string;

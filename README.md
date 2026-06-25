@@ -9,7 +9,7 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/@dimes-dot-fi/sdk"><img src="https://img.shields.io/npm/v/@dimes-dot-fi/sdk.svg" alt="npm version"></a>
   <a href="https://www.npmjs.com/package/@dimes-dot-fi/sdk"><img src="https://img.shields.io/npm/dm/@dimes-dot-fi/sdk.svg" alt="npm downloads"></a>
-  <a href="https://github.com/nicktids"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="license"></a>
+  <a href="https://github.com/dimes-fi/dimes-sdk/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="license"></a>
   <a href="https://docs.dimes.fi"><img src="https://img.shields.io/badge/docs-dimes.fi-black.svg" alt="docs"></a>
 </p>
 
@@ -93,7 +93,7 @@ const result = await executeQuote(client, {
   slippageBps: 300,
 });
 
-console.log(result.offer.entryPriceUsd);
+console.log(result.quote.entryPriceUsd);
 console.log(result.corrections); // auto-applied adjustments, if any
 ```
 
@@ -110,19 +110,74 @@ const result = await executeQuote(client, params, {
 
 ### Open a position on-chain
 
+**Always verify the quote's signature before submitting.** The quote is signed by
+the Dimes authority over every term (size, leverage, fees, expiry); the vault
+enforces it on-chain (`InvalidSignature` / `SignatureExpired`), so verifying
+client-side just lets a tampered or stale quote fail fast instead of reverting.
+
+#### Recommended (mirrors the [dimes-demo-ui](https://github.com/dimes-fi/dimes-demo-ui) demo)
+
+Fetch `contract-info` once (it's cached), check the recovered signer with
+`assertQuoteSigner`, then build and submit the tx however your wallet stack
+requires. This keeps full control of your own UX and tx path while the SDK owns
+the crypto:
+
 ```typescript
-import { buildCreatePositionTx, buildApproveTx, verifyOfferSignature } from "@dimes-dot-fi/sdk/contract";
+import {
+  assertQuoteSigner,
+  resolveExpectedSigner,
+  getCachedContractInfo,
+  buildApproveTx,
+  buildCreatePositionTx,
+} from "@dimes-dot-fi/sdk/contract";
+import { getAddress } from "viem";
 
-// Verify the quote signature
-await verifyOfferSignature(client, result.offer, userAddress);
+const quote = result.quote;
 
-// Build viem-compatible transactions
-const approveTx = buildApproveTx(usdcAddress, vaultAddress, amount);
-const createTx = buildCreatePositionTx(result.offer);
+// The signed `user` is bound to msg.sender on-chain, so the submitting wallet
+// must be the one the quote was created for.
+const user = getAddress(quote.authorityPublicKey);
+if (getAddress(walletAddress) !== user) throw new Error("Wrong wallet for this quote.");
 
+// contract-info is cached per-client (staleTime: Infinity in React via useContractInfo()).
+const { polygonSignerAddress } = await getCachedContractInfo(client);
+const expectedSigner = resolveExpectedSigner(polygonSignerAddress);
+if (!expectedSigner) throw new Error("No signer address from /contract-info.");
+
+// Recover + compare. Throws DimesContractError("invalid_signer") on mismatch.
+await assertQuoteSigner(quote, user, expectedSigner);
+
+// Build viem-compatible transactions and submit them your way.
+const approveTx = buildApproveTx(usdcAddress, vaultAddress, BigInt(quote.totalUserAmountUsdcUnits));
+const createTx = buildCreatePositionTx(quote);
 await walletClient.writeContract(approveTx);
 await walletClient.writeContract(createTx);
 ```
+
+#### Primitives (build it differently)
+
+- `recoverCreatePositionSigner(quote, user)` — pure EIP-712 recovery; compare the
+  returned address yourself.
+- `buildCreatePositionTx`, `buildApproveTx`, `buildRequestCloseTx`,
+  `buildPushFundedCreateCalls`, `buildDepositWalletBatch` — raw call/tx builders
+  for EOA, smart-wallet (ERC-4337) batching, or deposit-wallet relayer flows. See
+  the three create-position hooks in dimes-ui for worked examples of each.
+
+#### Headless one-liners (no custom UX needed)
+
+For a bot or server that holds a `DimesClient` and doesn't need bespoke checks,
+these verify against the client's cached `contract-info` for you:
+
+```typescript
+import { buildVerifiedCreatePositionTx, buildVerifiedPushFundedCreateCalls } from "@dimes-dot-fi/sdk/contract";
+
+// verify-then-build in one call (throws on a bad signature):
+const createTx = await buildVerifiedCreatePositionTx(client, quote, user);
+const calls = await buildVerifiedPushFundedCreateCalls(client, quote, depositWallet); // pUSD address from contract-info
+```
+
+`verifyQuoteSignature(client, quote, user)` is the standalone verify if you want
+to build separately. (`verifyOfferSignature` is a deprecated alias.)
 
 ### Close a position
 
@@ -215,17 +270,36 @@ Same API, same contracts, fake USDC. Get a sandbox key via the [Telegram link on
 | `GET /markets/:ticker` | `client.getMarket(ticker)` | `useMarket(ticker)` |
 | `GET /contract-info` | `client.getContractInfo()` | `useContractInfo()` |
 | `GET /positions` | `client.getPositions()` | `usePositions()` |
-| `GET /limits` | `client.getLimits()` | `useLimits()` |
+| `GET /user-limits` | `client.getUserLimits()` | `useUserLimits()` |
+| `GET /partner-limits` | `client.getPartnerLimits()` | `usePartnerLimits()` |
 | `POST /draft-quotes` | `client.createDraftQuote()` | — |
 | `POST /promoted-quotes/:id` | `client.promoteDraftQuote()` | — |
 | `POST /quotes` | `client.createQuote()` | — |
 | Draft → Promote (full flow) | `executeQuote()` | `useQuote()` |
 | Cancel position | `client.cancelPosition()` | `useCancelPosition()` |
 
+## Examples
+
+Runnable, type-checked examples live in [`examples/`](examples) — they're verified
+against the SDK source in CI (`pnpm examples:typecheck`), so they never drift from
+the real API:
+
+| File | Shows |
+| --- | --- |
+| [`01-quickstart.ts`](examples/01-quickstart.ts) | Auth, list markets, fetch an executable quote |
+| [`02-quote-engine.ts`](examples/02-quote-engine.ts) | `executeQuote` auto-correction + market-moved retries |
+| [`03-open-position-onchain.ts`](examples/03-open-position-onchain.ts) | EOA flow: approve → verify signature → `createPosition` (viem) |
+| [`04-positions-and-close.ts`](examples/04-positions-and-close.ts) | List positions, request an on-chain close |
+| [`05-websocket.ts`](examples/05-websocket.ts) | Stream live position events over Socket.IO |
+| [`react/trade-panel.tsx`](examples/react/trade-panel.tsx) | Provider + `useMarkets` + `useQuote` |
+| [`react/streams.tsx`](examples/react/streams.tsx) | `usePositions` with live WebSocket reconciliation |
+
 ## Documentation
 
 - [**Quickstart**](https://docs.dimes.fi/for-developers/quickstart) — end-to-end in 6 steps
 - [**SDK Installation**](https://docs.dimes.fi/for-developers/sdk-installation) — setup, auth, and peer deps
+- [**React Hooks**](https://docs.dimes.fi/for-developers/react-hooks) — provider, data hooks, quote state machine
+- [**WebSocket Events**](https://docs.dimes.fi/for-developers/websocket) — live position & market streams
 - [**API Reference**](https://docs.dimes.fi/for-developers/api-reference) — full endpoint documentation
 - [**Error Handling**](https://docs.dimes.fi/for-developers/error-handling) — error codes and structured hints
 - [**On-Chain Integration**](https://docs.dimes.fi/for-developers/on-chain-integration) — wallet patterns and contract ABIs

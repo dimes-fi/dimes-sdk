@@ -158,6 +158,27 @@ export default [
           selector: "PropertyDefinition[definite=true]",
           message: "Use 'declare' modifier instead of definite assignment assertion (!).",
         },
+        {
+          selector: "TSTypeAliasDeclaration[id.name=/[Oo]ffer/]",
+          message:
+            "Use 'quote' terminology, not 'offer', in the public API. The priced+signed object is a Quote. Only deprecated back-compat aliases may use 'offer' (with an inline disable).",
+        },
+        {
+          selector: "TSInterfaceDeclaration[id.name=/[Oo]ffer/]",
+          message: "Use 'quote' terminology, not 'offer'. The priced+signed object is a Quote.",
+        },
+        {
+          selector: ":matches(FunctionDeclaration, TSDeclareFunction)[id.name=/[Oo]ffer/]",
+          message: "Use 'quote' terminology, not 'offer', in function names.",
+        },
+        {
+          selector: "VariableDeclarator[id.name=/[Oo]ffer/]",
+          message: "Use 'quote' terminology, not 'offer', in identifiers. The priced+signed object is a Quote.",
+        },
+        {
+          selector: "TSPropertySignature[key.name=/[Oo]ffer/]",
+          message: "Use 'quote' terminology, not 'offer', in public interface fields.",
+        },
       ],
       "no-self-compare": "error",
       "no-use-before-define": "error",

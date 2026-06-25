@@ -1,5 +1,5 @@
 import type { Abi } from "viem";
-import type { Offer } from "../types";
+import type { Quote } from "../types";
 import { vaultAbi, erc20Abi } from "./abi";
 import { toHex, toAddress } from "./evm";
 
@@ -37,24 +37,31 @@ export interface RequestCloseTxData {
   args: readonly [`0x${string}`];
 }
 
-export function buildCreatePositionTx(offer: Offer): CreatePositionTxData {
+export interface RequestPartialCloseTxData {
+  address: `0x${string}`;
+  abi: Abi;
+  functionName: "requestPartialClose";
+  args: readonly [`0x${string}`, bigint];
+}
+
+export function buildCreatePositionTx(quote: Quote): CreatePositionTxData {
   return {
-    address: toAddress(offer.polygonVaultContractAddress),
+    address: toAddress(quote.polygonVaultContractAddress),
     abi: vaultAbi,
     functionName: "createPosition",
     args: [
-      toHex(offer.positionSeedHex),
-      toHex(offer.polymarketMarketId),
-      BigInt(offer.polymarketTokenId),
-      BigInt(offer.collateralUsdcUnits),
-      offer.leverageBps,
-      BigInt(offer.notionalUsdcUnits),
-      offer.originationFeeBps,
-      offer.lifetimeFeeAprBps,
-      offer.liquidationFeeBps,
-      BigInt(offer.expectedOpenTradingFeeUsdcUnits),
-      toHex(offer.contractSignature),
-      BigInt(offer.signatureExpiry),
+      toHex(quote.positionSeedHex),
+      toHex(quote.polymarketMarketId),
+      BigInt(quote.polymarketTokenId),
+      BigInt(quote.collateralUsdcUnits),
+      quote.leverageBps,
+      BigInt(quote.notionalUsdcUnits),
+      quote.originationFeeBps,
+      quote.lifetimeFeeAprBps,
+      quote.liquidationFeeBps,
+      BigInt(quote.expectedOpenTradingFeeUsdcUnits),
+      toHex(quote.contractSignature),
+      BigInt(quote.signatureExpiry),
     ],
   };
 }
@@ -74,5 +81,18 @@ export function buildRequestCloseTx(vaultAddress: `0x${string}`, positionKey: `0
     abi: vaultAbi,
     functionName: "requestClose",
     args: [positionKey],
+  };
+}
+
+export function buildRequestPartialCloseTx(
+  vaultAddress: `0x${string}`,
+  positionKey: `0x${string}`,
+  closeTokenUnits: bigint,
+): RequestPartialCloseTxData {
+  return {
+    address: vaultAddress,
+    abi: vaultAbi,
+    functionName: "requestPartialClose",
+    args: [positionKey, closeTokenUnits],
   };
 }
