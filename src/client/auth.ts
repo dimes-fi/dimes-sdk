@@ -3,6 +3,8 @@ import { DimesError } from "../errors/dimes-error";
 export interface AuthProvider {
   getHeaders(): Promise<Record<string, string>>;
   refresh?(): Promise<void>;
+  /** Synchronously return the current cached JWT, or null if not yet obtained. Used by the WebSocket clients. */
+  getToken?(): string | null;
 }
 
 interface TokenResponse {
@@ -47,6 +49,10 @@ export class ApiKeyAuth implements AuthProvider {
     return { Authorization: `Bearer ${this.jwt}` };
   }
 
+  public getToken(): string | null {
+    return this.jwt;
+  }
+
   public async refresh(): Promise<void> {
     if (this.refreshPromise) {
       await this.refreshPromise;
@@ -66,7 +72,7 @@ export class ApiKeyAuth implements AuthProvider {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${this.apiKey}`,
+        Authorization: `Api-Key ${this.apiKey}`,
       },
       body: JSON.stringify({ wallet_address: this.walletAddress }),
     });
@@ -109,6 +115,10 @@ export class JwtAuth implements AuthProvider {
       await this.refresh();
     }
     return { Authorization: `Bearer ${this.jwt}` };
+  }
+
+  public getToken(): string | null {
+    return this.jwt;
   }
 
   public async refresh(): Promise<void> {

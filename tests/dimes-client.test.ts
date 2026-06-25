@@ -111,11 +111,11 @@ describe("DimesClient", () => {
     expect(String(url)).toBe("https://test.api/v1/prediction-markets/positions");
   });
 
-  it("cancelPosition — calls POST /v1/prediction-markets/positions/:id/cancel", async () => {
+  it("cancelPosition — calls DELETE /v1/prediction-markets/positions/:id", async () => {
     await client.cancelPosition("pos_456");
     const [url, opts] = mockFetch.mock.calls[0];
-    expect(String(url)).toBe("https://test.api/v1/prediction-markets/positions/pos_456/cancel");
-    expect(opts?.method).toBe("POST");
+    expect(String(url)).toBe("https://test.api/v1/prediction-markets/positions/pos_456");
+    expect(opts?.method).toBe("DELETE");
   });
 
   it("getContractInfo — calls GET /v1/prediction-markets/contract-info", async () => {
@@ -126,12 +126,29 @@ describe("DimesClient", () => {
     expect(String(url)).toBe("https://test.api/v1/prediction-markets/contract-info");
   });
 
-  it("getLimits — calls GET /v1/prediction-markets/limits", async () => {
+  it("getUserLimits — calls GET /v1/prediction-markets/user-limits", async () => {
     mockFetch = createMockFetch({ max_notional: "1000" });
     client = createClient(mockFetch);
+    await client.getUserLimits();
+    const [url] = mockFetch.mock.calls[0];
+    expect(String(url)).toBe("https://test.api/v1/prediction-markets/user-limits");
+  });
+
+  it("getPartnerLimits — calls GET /v1/prediction-markets/partner-limits", async () => {
+    mockFetch = createMockFetch({ max_notional: "1000" });
+    client = createClient(mockFetch);
+    await client.getPartnerLimits();
+    const [url] = mockFetch.mock.calls[0];
+    expect(String(url)).toBe("https://test.api/v1/prediction-markets/partner-limits");
+  });
+
+  it("getLimits — deprecated alias resolves to user-limits", async () => {
+    mockFetch = createMockFetch({ max_notional: "1000" });
+    client = createClient(mockFetch);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- intentionally exercising the deprecated alias
     await client.getLimits();
     const [url] = mockFetch.mock.calls[0];
-    expect(String(url)).toBe("https://test.api/v1/prediction-markets/limits");
+    expect(String(url)).toBe("https://test.api/v1/prediction-markets/user-limits");
   });
 
   it("custom fetch is forwarded to HttpClient", async () => {
