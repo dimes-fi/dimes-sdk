@@ -14,6 +14,6 @@ export function buildQuoteParams(params: QuoteParams, stepBps: number = DEFAULT_
     notionalAmountUsdPips: notionalUsdPips.toString(),
     slippageBps: params.slippageBps,
     ...(params.allowPartialFill !== undefined ? { allowPartialFill: params.allowPartialFill } : {}),
-    ...(params.minFillBps !== undefined ? { minFillBps: params.minFillBps } : {}),
+    ...(params.allowPartialFill && params.minFillBps !== undefined ? { minFillBps: params.minFillBps } : {}),
   };
 }

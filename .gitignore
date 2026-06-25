@@ -4,5 +4,6 @@ dist/
 .claude
 .idea
 .npmrc
+.playwright-mcp
 
 CLAUDE.md
