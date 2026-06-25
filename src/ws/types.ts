@@ -9,6 +9,10 @@ export const positionEventTypes = [
   "position.liquidated",
   "position.opened",
   "position.opening",
+  "position.partial_close_requested",
+  "position.partial_close_initiated",
+  "position.partial_closed",
+  "position.partial_close_aborted",
   "position.reverted",
   "position.settled",
 ] as const;

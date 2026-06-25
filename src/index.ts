@@ -1,6 +1,15 @@
 export { DimesClient } from "./client";
 
-export type { DimesClientOptions, GetFeeRatesParams, GetMarketsParams, GetPositionsParams, MarketSort } from "./client";
+export type {
+  DimesClientOptions,
+  GetFeeRatesParams,
+  GetMarketsParams,
+  GetPositionsParams,
+  MarketExpand,
+  MarketSort,
+  PositionStatus,
+  SearchMarketsParams,
+} from "./client";
 
 export { ApiKeyAuth, JwtAuth } from "./client";
 
@@ -10,7 +19,14 @@ export { DimesError, DimesApiError, DimesContractError } from "./errors";
 
 export { resolveFriendlyMessage, formatErrorMessage } from "./errors";
 
-export { executeQuote, buildQuoteParams, marketMovedCodes, quoteErrorHint, hintAdjustment } from "./quote";
+export {
+  executeQuote,
+  isMarketMovedError,
+  buildQuoteParams,
+  marketMovedCodes,
+  quoteErrorHint,
+  hintAdjustment,
+} from "./quote";
 
 export type { QuoteHint, HintAdjustment, CorrectedField } from "./quote";
 
@@ -20,6 +36,8 @@ export type {
   MarketFees,
   MarketPrices,
   OriginationTier,
+  Quote,
+  // eslint-disable-next-line @typescript-eslint/no-deprecated -- re-export of intentional back-compat alias
   Offer,
   OpenPosition,
   ClosedPosition,
@@ -33,10 +51,13 @@ export type {
   PositionTiming,
   PositionFailure,
   CloseAttempt,
+  PendingOperation,
   PositionUnwind,
   PositionUnwindList,
   ContractInfo,
   CustomerLimit,
+  CreateQuoteParams,
+  // eslint-disable-next-line @typescript-eslint/no-deprecated -- re-export of intentional back-compat alias
   CreateOfferParams,
   CreateTokenResult,
   FeeRates,
@@ -74,6 +95,13 @@ export {
   estimateLiquidationPrice,
   computePolymarketTradingFee,
   expectedPositionTokenUnits,
+  tokenUnitsPerToken,
+  partialCloseMinTokens,
+  partialCloseMinFractionBps,
+  closeTokenUnitsForPct,
+  pctBpsForCloseTokenUnits,
+  fallbackMinPartialCloseTokenUnits,
+  clampCloseTokenUnits,
 } from "./utils";
 
 export type {
