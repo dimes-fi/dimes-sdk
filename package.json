@@ -72,6 +72,7 @@
     "generate:types": "tsx scripts/generate-types.ts",
     "typecheck": "tsc --noEmit",
     "examples:typecheck": "tsc --noEmit -p examples/tsconfig.json",
+    "pre-commit": "lint-staged && pnpm typecheck && pnpm examples:typecheck",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -83,7 +84,23 @@
     "prepublishOnly": "pnpm lint:fix && pnpm typecheck && pnpm examples:typecheck && pnpm test && pnpm build",
     "release": "pnpm version patch && npm publish --access public",
     "release:minor": "pnpm version minor && npm publish --access public",
-    "release:major": "pnpm version major && npm publish --access public"
+    "release:major": "pnpm version major && npm publish --access public",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "{src,tests}/**/*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "examples/**/*.{ts,tsx}": [
+      "prettier --write"
+    ],
+    "scripts/**/*.ts": [
+      "prettier --write"
+    ],
+    "*.{json,md,mjs}": [
+      "prettier --write"
+    ]
   },
   "peerDependencies": {
     "@tanstack/react-query": ">=5",
@@ -119,7 +136,9 @@
     "eslint-plugin-import-x": "^4.0.0",
     "eslint-plugin-simple-import-sort": "^12.0.0",
     "globals": "^17.0.0",
+    "husky": "^9.1.7",
     "knip": "^6.4.0",
+    "lint-staged": "^17.0.8",
     "openapi-typescript": "^7.0.0",
     "prettier": "^3.8.0",
     "react": "^19.0.0",
