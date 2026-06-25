@@ -69,7 +69,7 @@
   },
   "scripts": {
     "build": "tsup",
-    "generate:types": "tsx scripts/generate-types.ts",
+    "generate:types": "tsx scripts/generate-types.ts && prettier --write src/types/generated.ts",
     "typecheck": "tsc --noEmit",
     "examples:typecheck": "tsc --noEmit -p examples/tsconfig.json",
     "pre-commit": "lint-staged && pnpm typecheck && pnpm examples:typecheck",
