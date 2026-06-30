@@ -39,8 +39,11 @@ export interface GetMarketsParams {
   category?: string;
   status?: string;
   provider?: "polymarket" | "kalshi";
+  /** Free-text search across market tickers and titles. */
+  query?: string;
 }
 
+/** @deprecated Use {@link GetMarketsParams} with `query` and {@link DimesClient.getMarkets}. */
 export interface SearchMarketsParams extends GetMarketsParams {
   query: string;
 }
@@ -111,9 +114,13 @@ export class DimesClient {
     return this.http.request<Market>(`/v1/prediction-markets/markets/${encodeURIComponent(ticker)}`);
   }
 
+  /**
+   * @deprecated The `/markets/search` path is deprecated. Use {@link getMarkets} with a `query` param:
+   * `getMarkets({ query: "bitcoin" })`.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-deprecated -- this IS the deprecated method
   public async searchMarkets(params: SearchMarketsParams): Promise<Paginated<Market>> {
-    const query = buildQueryFromEntries(Object.entries(params));
-    return this.http.request<Paginated<Market>>(`/v1/prediction-markets/markets/search${query}`);
+    return this.getMarkets(params);
   }
 
   public async createDraftQuote(params: CreateQuoteParams): Promise<Quote> {

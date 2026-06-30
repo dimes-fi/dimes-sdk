@@ -8,6 +8,7 @@ export type {
   MarketExpand,
   MarketSort,
   PositionStatus,
+  // eslint-disable-next-line @typescript-eslint/no-deprecated -- back-compat re-export of deprecated type
   SearchMarketsParams,
 } from "./client";
 

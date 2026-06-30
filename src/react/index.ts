@@ -10,6 +10,7 @@ export { useQuoteMachine } from "./use-quote-machine";
 
 export type { UseQuoteMachineReturn, UseQuoteMachineOptions, QuoteMachineState } from "./use-quote-machine";
 
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- back-compat re-export of deprecated hook
 export { useMarkets, useMarket, useSearchMarkets } from "./use-markets";
 
 export { usePositions } from "./use-positions";
