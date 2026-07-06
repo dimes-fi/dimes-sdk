@@ -101,6 +101,14 @@ const friendlyBySelector: Record<string, string> = {
   "0x3e31884e": "Invalid ERC-1155 approver (zero address).",
   "0xced3e100": "Invalid ERC-1155 operator (zero address).",
   "0x5b059991": "ERC-1155 array length mismatch.",
+
+  // Solady SafeTransferLib — thrown by the vault's token transfers and not
+  // present in its ABI, so they only decode by selector.
+  "0xf4d678b8": "Insufficient USDC balance to cover collateral and fees. Add USDC and try again.",
+  "0x13be252b": "Insufficient USDC allowance. Approve and try again.",
+  "0x7939f424": "USDC transfer failed. Check your balance and allowance.",
+  "0x90b8ec18": "USDC transfer failed. Check your balance.",
+  "0x3e3f8f73": "USDC approval failed.",
 };
 
 const HEX_SELECTOR_LENGTH = 10;

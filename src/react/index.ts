@@ -19,6 +19,8 @@ export type { UsePositionsOptions } from "./use-positions";
 
 export { useContractInfo } from "./use-contract-info";
 
+export { usePositionPartialCloses } from "./use-partial-closes";
+
 // eslint-disable-next-line @typescript-eslint/no-deprecated -- re-export of intentional back-compat alias
 export { useLimits, useUserLimits, usePartnerLimits } from "./use-limits";
 

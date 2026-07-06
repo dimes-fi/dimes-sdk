@@ -55,6 +55,8 @@ export type {
   PendingOperation,
   PositionUnwind,
   PositionUnwindList,
+  PositionPartialClose,
+  PositionPartialCloseList,
   ContractInfo,
   CustomerLimit,
   CreateQuoteParams,

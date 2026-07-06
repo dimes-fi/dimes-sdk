@@ -62,6 +62,10 @@ export type PositionUnwind = CamelizeKeys<Raw["CustomerPositionUnwind"]>;
 
 export type PositionUnwindList = CamelizeKeys<Raw["CustomerPositionUnwindList"]>;
 
+export type PositionPartialClose = CamelizeKeys<Raw["CustomerPartialClose"]>;
+
+export type PositionPartialCloseList = CamelizeKeys<Raw["CustomerPartialCloseList"]>;
+
 export type PositionTransactionEntry = CamelizeKeys<Raw["PositionTransactionEntry"]>;
 
 export type PositionTransactionGroup = CamelizeKeys<Raw["PositionTransactionGroup"]>;

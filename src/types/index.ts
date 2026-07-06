@@ -27,6 +27,8 @@ export type {
   PendingOperation,
   PositionUnwind,
   PositionUnwindList,
+  PositionPartialClose,
+  PositionPartialCloseList,
   PositionTransactionEntry,
   PositionTransactionGroup,
   PositionTransactions,

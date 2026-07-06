@@ -130,7 +130,7 @@ export interface paths {
     };
     /**
      * List markets
-     * @description Paginated list of available prediction markets.
+     * @description Paginated list of available prediction markets. Pass `query` to perform a free-text search across market tickers and titles.
      */
     get: operations["CustomerMarketController_listMarkets"];
     put?: never;
@@ -149,8 +149,9 @@ export interface paths {
       cookie?: never;
     };
     /**
-     * Search markets
-     * @description Paginated free-text search across market tickers and titles.
+     * Search markets (deprecated)
+     * @deprecated
+     * @description Deprecated — use `GET /v1/prediction-markets/markets?query=<term>` instead. Paginated free-text search across market tickers and titles.
      */
     get: operations["CustomerMarketController_searchMarkets"];
     put?: never;
@@ -277,6 +278,26 @@ export interface paths {
      * @description Fetch a single position (open or closed) by its position ID.
      */
     get: operations["CustomerPositionController_getPositionById"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/prediction-markets/positions/{position_id}/partial-closes": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List position partial-close history
+     * @description Returns each executed partial close for a position, in chronological order, with the tokens sold, the average realized sale price, the sale proceeds, the protocol capital repaid, the owner payout, and the remaining position size after the close. Only partial closes that finalized on chain are returned.
+     */
+    get: operations["CustomerPartialCloseHistoryController_listPartialCloses"];
     put?: never;
     post?: never;
     delete?: never;
@@ -1023,6 +1044,11 @@ export interface components {
        * @example 10000000
        */
       position_token_units?: string | null;
+      /**
+       * @description How much of the requested size was actually filled when the position opened, in basis points (10000 = 100%). Computed as actual open notional / requested notional and FROZEN at open — it does NOT change when the position is partially closed. Use this for an 'opened at X% of requested' badge. Null until the open fill is recorded on chain.
+       * @example 9657
+       */
+      initial_fill_bps?: number | null;
     };
     CustomerPositionFailure: {
       /**
@@ -1047,6 +1073,39 @@ export interface components {
        * @example 2025-06-02T14:30:00.000Z
        */
       executed_at: string;
+      /**
+       * @description The market signal that triggered the risk-model inference behind this unwind (e.g. `spread_blowout`, `depth_decay`, `price_drop_severe`). Null for unwinds not tied to an inference run, such as manual admin-triggered deleveraging.
+       * @example spread_blowout
+       * @enum {string|null}
+       */
+      reason?:
+        | "activity_surge"
+        | "cancel_acceleration"
+        | "crypto_move"
+        | "depth_decay"
+        | "depth_drain"
+        | "depth_entry_drain"
+        | "game_start"
+        | "large_holder"
+        | "last_trade_divergence"
+        | "lead_change"
+        | "post_hard_exit_losing"
+        | "position_exposure"
+        | "price_drop_full_exit"
+        | "price_drop_moderate"
+        | "price_drop_severe"
+        | "price_drop_warning"
+        | "spread_blowout"
+        | "spread_spike"
+        | "spread_warning"
+        | "stale_refresh"
+        | "unknown"
+        | null;
+      /**
+       * @description Human-readable explanation of `reason` — a customer-facing sentence describing the market condition that triggered this deleverage. Null whenever `reason` is null.
+       * @example The bid-ask spread widened sharply beyond its recent baseline, signalling thinning liquidity.
+       */
+      reason_detail?: string | null;
     };
     CustomerPositionUnwindList: {
       data: components["schemas"]["CustomerPositionUnwind"][];
@@ -1190,6 +1249,11 @@ export interface components {
        * @example 10000000
        */
       position_token_units: string;
+      /**
+       * @description Fraction of the originally opened size still held, in basis points (10000 = 100%). Computed as current token units / original opened token units. This LEGITIMATELY DECREASES after each partial close (e.g. 7000 = 70% remaining after a 30% close) and is not a fill problem. Null until the open fill is recorded on chain.
+       * @example 7000
+       */
+      remaining_bps?: number | null;
       /**
        * @description Total position value formatted as USD
        * @example 3.00
@@ -1609,6 +1673,73 @@ export interface components {
        * @enum {string|null}
        */
       revert_reason?: "exchange_unavailable" | "slippage_exceeded" | "unknown" | null;
+    };
+    CustomerPartialClose: {
+      /**
+       * @description ISO 8601 timestamp when the partial close settled on-chain
+       * @example 2026-07-01T14:59:28.000Z
+       */
+      executed_at: string;
+      /**
+       * @description Token units sold in this partial close (1000000 units = 1 token)
+       * @example 94590000
+       */
+      sold_token_units: string;
+      /**
+       * @description Average realized sale price for this partial close, in USD pips (10000 = $1.00)
+       * @example 2838
+       */
+      average_sale_price_usd_pips: string;
+      /**
+       * @description Average realized sale price formatted as USD
+       * @example 0.28
+       */
+      average_sale_price_usd: string;
+      /**
+       * @description Gross sale proceeds received for the sold slice, in USD pips (10000 = $1.00)
+       * @example 268468
+       */
+      sale_proceeds_usd_pips: string;
+      /**
+       * @description Gross sale proceeds formatted as USD
+       * @example 26.85
+       */
+      sale_proceeds_usd: string;
+      /**
+       * @description Protocol capital repaid from the sale proceeds, in USD pips (10000 = $1.00)
+       * @example 144859
+       */
+      capital_repaid_usd_pips: string;
+      /**
+       * @description Protocol capital repaid formatted as USD
+       * @example 14.49
+       */
+      capital_repaid_usd: string;
+      /**
+       * @description Amount paid out to the position owner from the sale proceeds, in USD pips (10000 = $1.00)
+       * @example 123608
+       */
+      user_payout_usd_pips: string;
+      /**
+       * @description Owner payout formatted as USD
+       * @example 12.36
+       */
+      user_payout_usd: string;
+      /**
+       * @description Position token units still held after this partial close (1000000 units = 1 token)
+       * @example 220720000
+       */
+      remaining_position_token_units: string;
+      /**
+       * @description Book leverage after this partial close in basis points (20000 = 2x). Null if not recorded on-chain.
+       * @example 19999
+       */
+      new_leverage_bps: number | null;
+    };
+    CustomerPartialCloseList: {
+      data: components["schemas"]["CustomerPartialClose"][];
+      has_more: boolean;
+      total_count?: number;
     };
     PositionTransactionEntry: {
       /**
@@ -2145,6 +2276,8 @@ export interface operations {
         provider?: "polymarket" | "kalshi";
         /** @description Filter markets by status */
         status?: "active" | "closed" | "determined" | "finalized" | "disputed";
+        /** @description Free-text search query matched against market ticker and title */
+        query?: string;
       };
       header?: never;
       path?: never;
@@ -2406,6 +2539,28 @@ export interface operations {
           "application/json":
             | components["schemas"]["CustomerOpenPosition"]
             | components["schemas"]["CustomerClosedPosition"];
+        };
+      };
+    };
+  };
+  CustomerPartialCloseHistoryController_listPartialCloses: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        /** @description Position identifier */
+        position_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CustomerPartialCloseList"];
         };
       };
     };

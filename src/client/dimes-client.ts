@@ -9,6 +9,7 @@ import type {
   Market,
   Paginated,
   Position,
+  PositionPartialCloseList,
   PositionTransactions,
   Quote,
 } from "../types";
@@ -151,6 +152,12 @@ export class DimesClient {
   public async getPositionTransactions(positionId: string): Promise<PositionTransactions> {
     return this.http.request<PositionTransactions>(
       `/v1/prediction-markets/positions/${encodeURIComponent(positionId)}/transactions`,
+    );
+  }
+
+  public async getPositionPartialCloses(positionId: string): Promise<PositionPartialCloseList> {
+    return this.http.request<PositionPartialCloseList>(
+      `/v1/prediction-markets/positions/${encodeURIComponent(positionId)}/partial-closes`,
     );
   }
 
