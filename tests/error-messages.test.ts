@@ -78,4 +78,10 @@ describe("formatErrorMessage", () => {
   it("humanizes unknown codes", () => {
     expect(formatErrorMessage("some_new_error_code", null)).toBe("Some new error code");
   });
+
+  it("distinguishes the three notional-selector liquidity codes", () => {
+    expect(formatErrorMessage("notional_selector_below_min_notional", null)).toContain("minimum position size");
+    expect(formatErrorMessage("notional_selector_empty_order_book", null)).toContain("no available liquidity");
+    expect(formatErrorMessage("notional_selector_pregame_insufficient_liquidity", null)).toContain("pre-game");
+  });
 });

@@ -237,7 +237,14 @@ const friendlyByCode: Record<string, FriendlyEntry> = {
   quote_revision_required: "Quote needs to be refreshed before submitting.",
   quote_price_provider_not_found: "No price provider configured for this market.",
 
-  notional_selector_insufficient_liquidity: "Not enough liquidity at the selected size.",
+  notional_selector_insufficient_liquidity: "Not enough liquidity to fill an order of this size. Try a smaller size.",
+  notional_selector_below_min_notional:
+    "This side of the market doesn't have enough liquidity to support the minimum position size right now.",
+  notional_selector_empty_order_book:
+    "This side of the market has no available liquidity right now. Try again shortly.",
+  notional_selector_pregame_insufficient_liquidity:
+    "This market doesn't yet have enough pre-game liquidity to support a position. " +
+    "Try again closer to the event start.",
 
   evm_gas_price_circuit_breaker: "EVM gas price is too high — trading is temporarily paused.",
   evm_gas_price_spike: "EVM gas price spiked. Try again shortly.",

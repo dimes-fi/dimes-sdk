@@ -53,6 +53,7 @@ export function rejectionReasonText(code: string | null | undefined): string {
   }
   const stripped = code
     .replace(/^quote_/i, "")
+    .replace(/^notional_selector_/i, "")
     .replaceAll("_", " ")
     .toLowerCase();
   return stripped.charAt(0).toUpperCase() + stripped.slice(1);
@@ -64,6 +65,7 @@ export function rejectionReasonShort(code: string | null | undefined): string {
   }
   const stripped = code
     .replace(/^quote_/i, "")
+    .replace(/^notional_selector_/i, "")
     .replace(/_exceeded$/i, "")
     .replace(/_too_(low|high)$/i, "")
     .replaceAll("_", " ")
