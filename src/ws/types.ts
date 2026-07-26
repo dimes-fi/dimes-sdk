@@ -15,6 +15,7 @@ export const positionEventTypes = [
   "position.partial_close_aborted",
   "position.reverted",
   "position.settled",
+  "position.settlement_state_changed",
 ] as const;
 
 export type PositionEventType = (typeof positionEventTypes)[number];
@@ -37,6 +38,7 @@ export const marketEventTypes = [
   "market.discovered",
   "market.eligibility_changed",
   "market.max_leverage_changed",
+  "market.settlement_state_changed",
 ] as const;
 
 export type MarketEventType = (typeof marketEventTypes)[number];
