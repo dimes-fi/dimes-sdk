@@ -202,6 +202,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/prediction-markets/sample-events": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Emit every WebSocket event with mock data
+     * @description Emits one of every WebSocket event type, one per second, to the caller's own WebSocket connection so an integration can be exercised without waiting for real position activity. Authenticate with a partner API key to emit onto the partner positions gateway, or with a customer JWT to emit onto the user positions gateway (which additionally receives the `notification` events). The payloads are fixed mock data — no position is created and nothing is persisted. Limited to one request every 30 seconds.
+     */
+    post: operations["CustomerSampleEventController_createSampleEvents"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/prediction-markets/offers": {
     parameters: {
       query?: never;
@@ -817,7 +837,7 @@ export interface components {
        * @description Prediction market provider
        * @enum {string}
        */
-      provider: "kalshi" | "polymarket";
+      provider: "polymarket";
       /**
        * @description Current market status
        * @enum {string}
@@ -883,6 +903,12 @@ export interface components {
        * @example 50000
        */
       min_notional_usd_pips: string;
+      /**
+       * @description Where this market sits on the road to settlement. `none` — still trading, nothing pending. `awaiting_resolution` — the market has closed and the outcome is decided, but the prediction market provider has not yet published the result on chain, so nothing can be redeemed yet. `settling` — the result is published and open positions are being settled. `voided` — the market was voided and every token pays out at $0.50. `unresolved_upstream` — the market disappeared from the provider before publishing a result and may never resolve.
+       * @example none
+       * @enum {string}
+       */
+      settlement_state: "awaiting_resolution" | "none" | "settling" | "unresolved_upstream" | "voided";
       /**
        * @description Capacity-limited maximum notional for NO side formatted as USD
        * @example 50.00
@@ -1059,22 +1085,7 @@ export interface components {
     };
     CustomerPositionUnwind: {
       /**
-       * @description Leverage after unwind in basis points (20000 = 2x)
-       * @example 30000
-       */
-      after_leverage_bps: number;
-      /**
-       * @description Leverage before unwind in basis points (20000 = 2x)
-       * @example 60000
-       */
-      before_leverage_bps: number;
-      /**
-       * @description ISO 8601 timestamp when the unwind was executed on-chain
-       * @example 2025-06-02T14:30:00.000Z
-       */
-      executed_at: string;
-      /**
-       * @description The market signal that triggered the risk-model inference behind this unwind (e.g. `spread_blowout`, `depth_decay`, `price_drop_severe`). Null for unwinds not tied to an inference run, such as manual admin-triggered deleveraging.
+       * @description The market signal that triggered the risk-model inference behind this unwind (e.g. `spread_blowout`, `depth_decay`, `price_drop_severe`). Null for unwinds not tied to an inference run, such as manually triggered deleveraging.
        * @example spread_blowout
        * @enum {string|null}
        */
@@ -1101,6 +1112,21 @@ export interface components {
         | "stale_refresh"
         | "unknown"
         | null;
+      /**
+       * @description Leverage after unwind in basis points (20000 = 2x)
+       * @example 30000
+       */
+      after_leverage_bps: number;
+      /**
+       * @description Leverage before unwind in basis points (20000 = 2x)
+       * @example 60000
+       */
+      before_leverage_bps: number;
+      /**
+       * @description ISO 8601 timestamp when the unwind was executed on-chain
+       * @example 2025-06-02T14:30:00.000Z
+       */
+      executed_at: string;
       /**
        * @description Human-readable explanation of `reason` — a customer-facing sentence describing the market condition that triggered this deleverage. Null whenever `reason` is null.
        * @example The bid-ask spread widened sharply beyond its recent baseline, signalling thinning liquidity.
@@ -1292,7 +1318,7 @@ export interface components {
        */
       accrued_lifetime_fee_usd_pips: string;
       /**
-       * @description Venue (Polymarket/Kalshi) trading fees paid so far on this position, summed across open and any force-unwind exchange transactions, formatted as USD.
+       * @description Venue (Polymarket) trading fees paid so far on this position, summed across open and any force-unwind exchange transactions, formatted as USD.
        * @example 0.02
        */
       accrued_venue_fee_usd: string;
@@ -1389,6 +1415,12 @@ export interface components {
         | "inactive"
         | "initialized";
       /**
+       * @description Where this market sits on the road to settlement. `none` — still trading, nothing pending. `awaiting_resolution` — the market has closed and the outcome is decided, but the prediction market provider has not yet published the result on chain, so nothing can be redeemed yet. `settling` — the result is published and we are settling the position. `voided` — the market was voided and every token pays out at $0.50. `unresolved_upstream` — the market disappeared from the provider before publishing a result and may never resolve.
+       * @example awaiting_resolution
+       * @enum {string}
+       */
+      settlement_state: "awaiting_resolution" | "none" | "settling" | "unresolved_upstream" | "voided";
+      /**
        * @description Minutes until market closes
        * @example 1440
        */
@@ -1408,7 +1440,7 @@ export interface components {
        * @description Prediction market provider
        * @enum {string}
        */
-      provider: "kalshi" | "polymarket";
+      provider: "polymarket";
       /**
        * @description Market side
        * @enum {string}
@@ -1522,7 +1554,7 @@ export interface components {
        */
       total_lifetime_fee_usd_pips: string;
       /**
-       * @description Total venue (Polymarket/Kalshi) trading fees collected across the position lifetime (open + close/liquidation/settle + force-unwind), formatted as USD.
+       * @description Total venue (Polymarket) trading fees collected across the position lifetime (open + close/liquidation/settle + force-unwind), formatted as USD.
        * @example 0.02
        */
       total_venue_fee_usd: string;
@@ -1618,7 +1650,7 @@ export interface components {
        * @description Prediction market provider
        * @enum {string}
        */
-      provider: "kalshi" | "polymarket";
+      provider: "polymarket";
       /**
        * @description Market side
        * @enum {string}
@@ -1779,6 +1811,18 @@ export interface components {
       /** @description Transactions that force-unwound (deleveraged) the position on chain, including the finalize-unwind transaction. */
       force_unwind: components["schemas"]["PositionTransactionGroup"];
     };
+    CustomerSampleEvents: {
+      /**
+       * @description Total number of events that will be delivered over the WebSocket connection.
+       * @example 19
+       */
+      event_count: number;
+      /**
+       * @description Delay between two consecutive events, in milliseconds.
+       * @example 1000
+       */
+      interval_ms: number;
+    };
     CreateOfferBody: {
       /**
        * @description Leverage in basis points (20000 = 2x, 100000 = 10x). Must be divisible by 2500. Maximum 10x.
@@ -1807,8 +1851,8 @@ export interface components {
       slippage_bps: number;
       /**
        * @description Prediction market provider
-       * @default kalshi
-       * @example kalshi
+       * @default polymarket
+       * @example polymarket
        * @enum {string}
        */
       pm_provider: "kalshi" | "polymarket";
@@ -1866,7 +1910,7 @@ export interface components {
        * @description Prediction market provider
        * @enum {string}
        */
-      provider: "kalshi" | "polymarket";
+      provider: "polymarket";
       /**
        * @description Wallet address (Solana public key or EVM address)
        * @example 7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU
@@ -2040,7 +2084,7 @@ export interface components {
        */
       partner_origination_fee_usdc_units: string;
       /**
-       * @description Polymarket venue trading fee rate in basis points. Applied to expectedOpenTradingFeeUsdcUnits. `0` for Kalshi.
+       * @description Polymarket venue trading fee rate in basis points. Applied to expectedOpenTradingFeeUsdcUnits.
        * @example 100
        */
       polymarket_trading_fee_bps: number;
@@ -2116,7 +2160,7 @@ export interface components {
        */
       total_user_amount_usd_pips: string;
       /**
-       * @description Total amount user must transfer at createPosition in USDC units (1,000,000 units = 1 USDC). Contract-ready value. On Polymarket = collateral + originationFee; on Kalshi = collateral + tradingFee.
+       * @description Total amount user must transfer at createPosition in USDC units (1,000,000 units = 1 USDC). Contract-ready value. On Polymarket = collateral + originationFee.
        * @example 2730000
        */
       total_user_amount_usdc_units: string;
@@ -2273,7 +2317,7 @@ export interface operations {
         /** @description Filter markets by category */
         category?: "crypto" | "sport";
         /** @description Filter markets by prediction market provider */
-        provider?: "polymarket" | "kalshi";
+        provider?: "polymarket";
         /** @description Filter markets by status */
         status?: "active" | "closed" | "determined" | "finalized" | "disputed";
         /** @description Free-text search query matched against market ticker and title */
@@ -2318,7 +2362,7 @@ export interface operations {
         /** @description Filter markets by category */
         category?: "crypto" | "sport";
         /** @description Filter markets by prediction market provider */
-        provider?: "polymarket" | "kalshi";
+        provider?: "polymarket";
         /** @description Filter markets by status */
         status?: "active" | "closed" | "determined" | "finalized" | "disputed";
         /** @description Free-text search query matched against market ticker and title */
@@ -2408,6 +2452,25 @@ export interface operations {
             /** @description Total matching records. Present only when expand=total_count. */
             total_count?: number;
           };
+        };
+      };
+    };
+  };
+  CustomerSampleEventController_createSampleEvents: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CustomerSampleEvents"];
         };
       };
     };
