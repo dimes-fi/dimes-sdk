@@ -217,6 +217,7 @@ const friendlyByCode: Record<string, FriendlyEntry> = {
   quote_market_not_found: "Market not found.",
   quote_market_risk_too_high: "Market risk is too high right now. Try again later.",
   quote_market_unsupported_category: "This market category is not supported.",
+  quote_market_unsupported_crypto_asset: "This market's underlying asset is not supported.",
   quote_market_no_prices: "No price data available for this market.",
   quote_market_missing_polymarket_condition_id: "This market is missing required Polymarket data.",
 
