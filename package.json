@@ -1,6 +1,6 @@
 {
   "name": "@dimes-dot-fi/sdk",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "TypeScript SDK for the Dimes prediction market API",
   "license": "MIT",
   "homepage": "https://github.com/dimes-fi/dimes-sdk#readme",
