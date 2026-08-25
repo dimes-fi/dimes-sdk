@@ -1,3 +1,4 @@
+import type { PromoteDraftQuoteParams } from "../client/dimes-client";
 import { DimesApiError, DimesError } from "../errors/dimes-error";
 import type { CreateQuoteParams, Quote } from "../types";
 import type { QuoteOptions, QuoteParams, QuoteResult } from "../types/quote";
@@ -6,7 +7,7 @@ import { type HintAdjustment, hintAdjustment, marketMovedCodes, quoteErrorHint }
 
 export interface QuoteClient {
   createDraftQuote(params: CreateQuoteParams): Promise<Quote>;
-  promoteDraftQuote(draftId: string): Promise<Quote>;
+  promoteDraftQuote(draftId: string, params?: PromoteDraftQuoteParams): Promise<Quote>;
   createQuote(params: CreateQuoteParams): Promise<Quote>;
 }
 
@@ -91,7 +92,9 @@ export async function executeQuote(
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      const promotedQuote = await client.promoteDraftQuote(currentDraft.id);
+      // The draft carries no risk mode, so the caller's choice has to be repeated here or the
+      // promoted quote comes back adaptive with different amounts
+      const promotedQuote = await client.promoteDraftQuote(currentDraft.id, { riskMode: params.riskMode });
       return { quote: promotedQuote, offer: promotedQuote, corrections, retries };
     } catch (err) {
       if (handleMarketMoved(err, attempt, maxRetries)) {

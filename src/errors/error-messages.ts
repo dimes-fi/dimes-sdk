@@ -3,7 +3,7 @@ import { type Params, getParam } from "../utils/parse";
 
 type FriendlyEntry = string | ((params: Params) => string);
 
-const minFillBpsMaxForMessage = 5_000;
+const minFillBpsMaxForMessage = 7_000;
 
 const friendlyByCode: Record<string, FriendlyEntry> = {
   invalid_evm_address: "Invalid EVM address.",
@@ -14,6 +14,9 @@ const friendlyByCode: Record<string, FriendlyEntry> = {
 
   unauthorized: "Session expired. Please reconnect your wallet.",
   forbidden: "You do not have access to this resource.",
+
+  beta_feature_not_enabled:
+    "This is a beta feature and it is not enabled for your account. Contact us to have it enabled.",
 
   array_out_of_bounds: "Internal indexing error. Please try again.",
   batch_compute_not_available: "Cached pricing is temporarily unavailable. Try again shortly.",
@@ -197,7 +200,7 @@ const friendlyByCode: Record<string, FriendlyEntry> = {
   },
 
   quote_min_fill_bps_requires_fak: "Partial-fill request was malformed. Please re-quote.",
-  quote_min_fill_bps_out_of_range: "Minimum fill must be between 20% and 50%.",
+  quote_min_fill_bps_out_of_range: "Minimum fill must be between 20% and 70%.",
   quote_min_fill_bps_step_invalid: "Minimum fill must be set in 5% steps.",
   quote_min_fill_bps_below_floor: (params) => {
     const floorRaw = getParam(params, "floorMinFillBps");
@@ -218,6 +221,7 @@ const friendlyByCode: Record<string, FriendlyEntry> = {
   quote_market_risk_too_high: "Market risk is too high right now. Try again later.",
   quote_market_unsupported_category: "This market category is not supported.",
   quote_market_unsupported_crypto_asset: "This market's underlying asset is not supported.",
+  quote_market_unsupported_sport: "This sport is not supported.",
   quote_market_no_prices: "No price data available for this market.",
   quote_market_missing_polymarket_condition_id: "This market is missing required Polymarket data.",
 
@@ -257,6 +261,12 @@ const friendlyByCode: Record<string, FriendlyEntry> = {
   position_transition_invalid_state: "Position is not in a state that allows this action.",
 
   quote_creation_disabled: "Quote creation is temporarily disabled. Try again shortly.",
+
+  quote_committed_plan_more_restrictive:
+    "The committed deleveraging plan has moved against the terms you were shown. Refresh the quote to see the " +
+    "current plan.",
+  quote_committed_risk_mode_unavailable:
+    "Committed mode isn't available for this position. Open it in adaptive mode instead.",
 };
 
 function humanizeCode(code: string): string {

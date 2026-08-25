@@ -62,11 +62,11 @@ describe("resolveFriendlyMessage", () => {
   it("tells the user to increase size when the floor exceeds the slider max", () => {
     const msg = resolveFriendlyMessage("quote_min_fill_bps_below_floor", {
       boundBy: "notional",
-      floorMinFillBps: 6000,
-      minFillBps: 5000,
+      floorMinFillBps: 7500,
+      minFillBps: 7000,
     });
     expect(msg).toContain("Increase your trade size");
-    expect(msg).not.toContain("60%");
+    expect(msg).not.toContain("75%");
   });
 });
 

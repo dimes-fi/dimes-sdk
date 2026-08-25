@@ -15,5 +15,6 @@ export function buildQuoteParams(params: QuoteParams, stepBps: number = DEFAULT_
     slippageBps: params.slippageBps,
     ...(params.allowPartialFill !== undefined ? { allowPartialFill: params.allowPartialFill } : {}),
     ...(params.allowPartialFill && params.minFillBps !== undefined ? { minFillBps: params.minFillBps } : {}),
+    ...(params.riskMode !== undefined ? { riskMode: params.riskMode } : {}),
   };
 }

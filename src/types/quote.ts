@@ -1,5 +1,5 @@
 import type { HintAdjustment } from "../quote/quote-error-hints";
-import type { Quote } from "./aliases";
+import type { Quote, RiskMode } from "./aliases";
 
 export type Side = "yes" | "no";
 
@@ -16,6 +16,11 @@ export interface QuoteParams {
   allowPartialFill?: boolean;
   /** Minimum acceptable fill in basis points. Only valid when `allowPartialFill` is true. */
   minFillBps?: number;
+  /**
+   * Ask for a committed deleverage plan instead of the adaptive risk engine. Defaults to
+   * `adaptive`. Repeated at promotion, since a draft carries no mode of its own.
+   */
+  riskMode?: RiskMode;
 }
 
 export interface MarketMovedEvent {

@@ -1,12 +1,13 @@
 import type { DimesClient } from "../client/dimes-client";
 import type { Quote } from "../types";
-import { buildCreatePositionTx, type CreatePositionTxData } from "./build-tx";
+import { buildCreatePositionTx, type OpenPositionTxData } from "./build-tx";
 import { buildPushFundedCreateCalls, type DepositWalletCall } from "./deposit-wallet";
 import { getCachedContractInfo, verifyQuoteSignature } from "./verify-signature";
 
 /**
  * Verify a quote's signature against the on-chain authority (using the client's
- * cached `/contract-info`) and then build the `createPosition` transaction.
+ * cached `/contract-info`) and then build the transaction that opens the position —
+ * `createPosition`, or `createPositionWithMargin` for a committed-mode quote.
  *
  * Prefer this over the raw {@link buildCreatePositionTx} so a tampered or stale
  * quote fails fast in the client instead of reverting on-chain. Throws
@@ -19,7 +20,7 @@ export async function buildVerifiedCreatePositionTx(
   client: DimesClient,
   quote: Quote,
   userAddress: `0x${string}`,
-): Promise<CreatePositionTxData> {
+): Promise<OpenPositionTxData> {
   await verifyQuoteSignature(client, quote, userAddress);
   return buildCreatePositionTx(quote);
 }

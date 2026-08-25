@@ -1,7 +1,7 @@
 import { useCallback, useReducer, useRef } from "react";
 import { buildQuoteParams } from "../quote/build-quote-params";
 import { isMarketMovedError } from "../quote/quote";
-import type { CreateQuoteParams, Quote } from "../types";
+import type { CreateQuoteParams, Quote, RiskMode } from "../types";
 import type { QuoteParams } from "../types/quote";
 import { useDimesClient } from "./provider";
 
@@ -75,10 +75,14 @@ export interface UseQuoteMachineReturn {
   state: QuoteMachineState;
   /** Build params from a `QuoteParams` and fetch a draft quote. Moves to `draft-ready`. */
   getDraft: (params: QuoteParams) => Promise<void>;
-  /** Promote a reviewed draft into a signed quote. On market-moved, re-drafts and surfaces `market-moved`. */
-  promote: (draft: Quote, retryCount?: number) => Promise<void>;
-  /** Accept a re-drafted quote after a `market-moved` and promote it. */
-  acceptChanges: (newDraft: Quote, retryCount: number) => Promise<void>;
+  /**
+   * Promote a reviewed draft into a signed quote, in `riskMode` if given — a draft is always drawn
+   * up as adaptive, so this is where a mode the user picked after seeing the draft is applied.
+   * On market-moved, re-drafts and surfaces `market-moved`.
+   */
+  promote: (draft: Quote, retryCount?: number, riskMode?: RiskMode) => Promise<void>;
+  /** Accept a re-drafted quote after a `market-moved` and promote it, in `riskMode` if given. */
+  acceptChanges: (newDraft: Quote, retryCount: number, riskMode?: RiskMode) => Promise<void>;
   /** Promote pre-adjusted params directly via `createQuote` (e.g. after applying a correction hint). */
   correctAndPromote: (originalDraft: Quote, adjustedParams: CreateQuoteParams) => Promise<void>;
   reset: () => void;
@@ -109,11 +113,15 @@ export function useQuoteMachine(options?: UseQuoteMachineOptions): UseQuoteMachi
   );
 
   const promote = useCallback(
-    async (draft: Quote, retryCount = 0): Promise<void> => {
+    async (draft: Quote, retryCount = 0, riskModeOverride?: RiskMode): Promise<void> => {
       const quotedAt = quotedAtRef.current;
       dispatch({ type: "promoting", draft, quotedAt });
       try {
-        const promotedQuote = await client.promoteDraftQuote(draft.id);
+        // A draft carries no mode — the promotion query decides it, and omitting it means adaptive.
+        // The caller passes the mode the user picked off the draft's `committedUnwinds`; without one,
+        // fall back to the mode the draft was requested with.
+        const riskMode = riskModeOverride ?? lastParamsRef.current?.riskMode;
+        const promotedQuote = await client.promoteDraftQuote(draft.id, riskMode ? { riskMode } : undefined);
         dispatch({ type: "promoted", draft, promotedQuote, quotedAt });
       } catch (err) {
         if (isMarketMovedError(err) && retryCount < maxRetries && lastParamsRef.current) {
@@ -140,8 +148,8 @@ export function useQuoteMachine(options?: UseQuoteMachineOptions): UseQuoteMachi
   );
 
   const acceptChanges = useCallback(
-    async (newDraft: Quote, retryCount: number): Promise<void> => {
-      await promote(newDraft, retryCount);
+    async (newDraft: Quote, retryCount: number, riskMode?: RiskMode): Promise<void> => {
+      await promote(newDraft, retryCount, riskMode);
     },
     [promote],
   );

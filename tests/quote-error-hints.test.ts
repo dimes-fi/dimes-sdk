@@ -11,6 +11,20 @@ describe("quoteErrorHint", () => {
     expect(hint).toEqual({ kind: "clamp-leverage", maxLeverageBps: 30000 });
   });
 
+  it("returns clamp-leverage when the committed plan priced now is more restrictive", () => {
+    const hint = quoteErrorHint(
+      "quote_committed_plan_more_restrictive",
+      { maxLeverageBps: 30000 },
+      { leverageBps: 50000 },
+    );
+    expect(hint).toEqual({ kind: "clamp-leverage", maxLeverageBps: 30000 });
+  });
+
+  it("returns null when no leverage would honour the committed plan", () => {
+    const hint = quoteErrorHint("quote_committed_plan_more_restrictive", {}, { leverageBps: 50000 });
+    expect(hint).toBeNull();
+  });
+
   it("returns raise-collateral for collateral floor breach", () => {
     const hint = quoteErrorHint(
       "quote_leverage_exceeds_collateral_floor",
@@ -108,7 +122,7 @@ describe("quoteErrorHint min-fill", () => {
   });
 
   it("returns null when the floor exceeds the slider max (no fill % can satisfy it)", () => {
-    const hint = quoteErrorHint("quote_min_fill_bps_below_floor", { floorMinFillBps: 6000 }, { leverageBps: 20000 });
+    const hint = quoteErrorHint("quote_min_fill_bps_below_floor", { floorMinFillBps: 7500 }, { leverageBps: 20000 });
     expect(hint).toBeNull();
   });
 });

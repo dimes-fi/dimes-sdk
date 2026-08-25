@@ -2,6 +2,7 @@ import type { Abi } from "viem";
 import type { Quote } from "../types";
 import { vaultAbi, erc20Abi } from "./abi";
 import { toHex, toAddress } from "./evm";
+import { isCommittedQuote } from "./risk-mode";
 
 export interface CreatePositionTxData {
   address: `0x${string}`;
@@ -22,6 +23,33 @@ export interface CreatePositionTxData {
     bigint,
   ];
 }
+
+export interface CreatePositionWithMarginTxData {
+  address: `0x${string}`;
+  abi: Abi;
+  functionName: "createPositionWithMargin";
+  args: readonly [
+    `0x${string}`,
+    `0x${string}`,
+    bigint,
+    bigint,
+    number,
+    bigint,
+    number,
+    number,
+    number,
+    bigint,
+    bigint,
+    `0x${string}`,
+    bigint,
+  ];
+}
+
+/**
+ * What {@link buildCreatePositionTx} returns: the plain call for an adaptive quote, the
+ * margin-bearing call for a committed one.
+ */
+export type OpenPositionTxData = CreatePositionTxData | CreatePositionWithMarginTxData;
 
 export interface ApproveTxData {
   address: `0x${string}`;
@@ -44,25 +72,52 @@ export interface RequestPartialCloseTxData {
   args: readonly [`0x${string}`, bigint];
 }
 
-export function buildCreatePositionTx(quote: Quote): CreatePositionTxData {
+/**
+ * Build the vault call that opens the position this quote was signed for.
+ *
+ * The quote names its own mode in `riskMode`: a committed-mode quote
+ * is signed over a different EIP-712 type and opens through `createPositionWithMargin`, which
+ * pulls `marginUsdcUnits` on top of collateral and fees. Submitting one quote's signature to
+ * the other entry point always reverts, so the mode is read off the quote rather than left to
+ * the caller.
+ *
+ * `quote.totalUserAmountUsdcUnits` already includes the margin — approve that amount.
+ */
+export function buildCreatePositionTx(quote: Quote): OpenPositionTxData {
+  const address = toAddress(quote.polygonVaultContractAddress);
+
+  const commonArgs = [
+    toHex(quote.positionSeedHex),
+    toHex(quote.polymarketMarketId),
+    BigInt(quote.polymarketTokenId),
+    BigInt(quote.collateralUsdcUnits),
+    quote.leverageBps,
+    BigInt(quote.notionalUsdcUnits),
+    quote.originationFeeBps,
+    quote.lifetimeFeeAprBps,
+    quote.liquidationFeeBps,
+    BigInt(quote.expectedOpenTradingFeeUsdcUnits),
+  ] as const;
+
+  if (isCommittedQuote(quote)) {
+    return {
+      address,
+      abi: vaultAbi,
+      functionName: "createPositionWithMargin",
+      args: [
+        ...commonArgs,
+        BigInt(quote.marginUsdcUnits),
+        toHex(quote.contractSignature),
+        BigInt(quote.signatureExpiry),
+      ],
+    };
+  }
+
   return {
-    address: toAddress(quote.polygonVaultContractAddress),
+    address,
     abi: vaultAbi,
     functionName: "createPosition",
-    args: [
-      toHex(quote.positionSeedHex),
-      toHex(quote.polymarketMarketId),
-      BigInt(quote.polymarketTokenId),
-      BigInt(quote.collateralUsdcUnits),
-      quote.leverageBps,
-      BigInt(quote.notionalUsdcUnits),
-      quote.originationFeeBps,
-      quote.lifetimeFeeAprBps,
-      quote.liquidationFeeBps,
-      BigInt(quote.expectedOpenTradingFeeUsdcUnits),
-      toHex(quote.contractSignature),
-      BigInt(quote.signatureExpiry),
-    ],
+    args: [...commonArgs, toHex(quote.contractSignature), BigInt(quote.signatureExpiry)],
   };
 }
 

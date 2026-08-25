@@ -4,6 +4,7 @@ export { isOpenPosition, isClosedPosition, leverageMaxBps } from "./aliases";
 
 export type {
   Market,
+  MarketEvent,
   MarketLeverage,
   MarketFees,
   MarketPrices,
@@ -34,6 +35,7 @@ export type {
   PositionTransactions,
   ContractInfo,
   CustomerLimit,
+  RiskMode,
   CreateQuoteParams,
   // eslint-disable-next-line @typescript-eslint/no-deprecated -- re-export of intentional back-compat alias
   CreateOfferParams,

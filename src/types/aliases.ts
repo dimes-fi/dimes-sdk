@@ -3,7 +3,22 @@ import type { components } from "./generated";
 
 type Raw = components["schemas"];
 
-export type Market = CamelizeKeys<Raw["CustomerMarket"]>;
+/**
+ * The event a market belongs to — the real-world happening it resolves against (one game, one
+ * hourly price window). `seriesTicker` names the recurring template the event came from, and is
+ * null for events with no series.
+ *
+ * Hand-written rather than derived from `Raw` because `generated.ts` is currently pinned to an API
+ * version that predates this block. Delete this and let `CustomerMarket` supply `event` the next
+ * time the types are regenerated against a spec that has it.
+ */
+export interface MarketEvent {
+  seriesTicker: string | null;
+  ticker: string;
+  title: string | null;
+}
+
+export type Market = CamelizeKeys<Raw["CustomerMarket"]> & { event: MarketEvent };
 
 export type MarketLeverage = CamelizeKeys<Raw["CustomerLeverage"]>;
 
@@ -86,6 +101,8 @@ export type FeeRates = CamelizeKeys<Raw["CustomerFeeRates"]>;
 
 export type FeeReport = CamelizeKeys<Raw["CustomerFeeReport"]>;
 
+export type RiskMode = "adaptive" | "committed";
+
 export interface CreateQuoteParams {
   marketTicker: string;
   effectiveSide: "yes" | "no";
@@ -95,6 +112,15 @@ export interface CreateQuoteParams {
   pmProvider?: "polymarket" | "kalshi";
   allowPartialFill?: boolean;
   minFillBps?: number;
+  /**
+   * Ask for a committed deleverage plan (a fixed ladder of trigger prices, backed by a refundable
+   * margin deposit) instead of the adaptive risk engine. Defaults to `adaptive`.
+   *
+   * A committed request is answered in committed mode or rejected with
+   * `quote_committed_risk_mode_unavailable` — you never get an adaptive quote back from it. Take a
+   * draft first and read `committedUnwinds.available` to know whether the mode is on offer.
+   */
+  riskMode?: RiskMode;
 }
 
 /** @deprecated Renamed to {@link CreateQuoteParams}. Kept as an alias for backward compatibility. */

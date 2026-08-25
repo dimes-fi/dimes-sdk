@@ -2,6 +2,7 @@ import { encodeFunctionData } from "viem";
 import type { Quote } from "../types";
 import { vaultAbi } from "./abi";
 import { toAddress, toHex, type Address, type Hex } from "./evm";
+import { isCommittedQuote } from "./risk-mode";
 
 /**
  * Helpers for opening and closing positions from a Polymarket **deposit wallet** (DW).
@@ -86,6 +87,30 @@ const createPositionPushFundedAbi = [
   },
 ] as const;
 
+const createPositionPushFundedWithMarginAbi = [
+  {
+    type: "function",
+    name: "createPositionPushFundedWithMargin",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "positionSeed", type: "bytes16" },
+      { name: "marketId", type: "bytes32" },
+      { name: "tokenId", type: "uint256" },
+      { name: "collateralUsdcUnits", type: "uint256" },
+      { name: "leverageBps", type: "uint32" },
+      { name: "notionalUsdcUnits", type: "uint256" },
+      { name: "originationFeeBps", type: "uint16" },
+      { name: "lifetimeFeeAprBps", type: "uint16" },
+      { name: "liquidationFeeBps", type: "uint16" },
+      { name: "venueFeeUsdcUnits", type: "uint256" },
+      { name: "marginUsdcUnits", type: "uint256" },
+      { name: "signature", type: "bytes" },
+      { name: "signatureExpiry", type: "uint256" },
+    ],
+    outputs: [],
+  },
+] as const;
+
 const erc20TransferAbi = [
   {
     type: "function",
@@ -99,11 +124,50 @@ const erc20TransferAbi = [
   },
 ] as const;
 
+function buildPushFundedCreateData(quote: Quote): Hex {
+  const commonArgs = [
+    toHex(quote.positionSeedHex),
+    toHex(quote.polymarketMarketId),
+    BigInt(quote.polymarketTokenId),
+    BigInt(quote.collateralUsdcUnits),
+    quote.leverageBps,
+    BigInt(quote.notionalUsdcUnits),
+    quote.originationFeeBps,
+    quote.lifetimeFeeAprBps,
+    quote.liquidationFeeBps,
+    BigInt(quote.expectedOpenTradingFeeUsdcUnits),
+  ] as const;
+
+  if (isCommittedQuote(quote)) {
+    return encodeFunctionData({
+      abi: createPositionPushFundedWithMarginAbi,
+      functionName: "createPositionPushFundedWithMargin",
+      args: [
+        ...commonArgs,
+        BigInt(quote.marginUsdcUnits),
+        toHex(quote.contractSignature),
+        BigInt(quote.signatureExpiry),
+      ],
+    });
+  }
+
+  return encodeFunctionData({
+    abi: createPositionPushFundedAbi,
+    functionName: "createPositionPushFunded",
+    args: [...commonArgs, toHex(quote.contractSignature), BigInt(quote.signatureExpiry)],
+  });
+}
+
 /**
  * Build the three inner calls for a push-funded `createPosition`.
  *
  * The relayer submits these atomically; `quote.totalUserAmountUsdcUnits` is the
- * contract-ready amount (collateral + fees) used for both the reservation and the transfer.
+ * contract-ready amount (collateral + fees + committed-mode margin) used for both the
+ * reservation and the transfer. The vault checks the pushed amount for exact equality, so
+ * a committed quote whose margin was left out of the transfer reverts the whole batch.
+ *
+ * A committed quote is opened through `createPositionPushFundedWithMargin`, chosen from the
+ * quote itself — see {@link isCommittedQuote}.
  *
  * @param quote - the signed quote returned by the quote endpoint
  * @param pUsdAddress - the pUSD (USDC) token address (from `GET /contract-info`)
@@ -124,24 +188,7 @@ export function buildPushFundedCreateCalls(quote: Quote, pUsdAddress: string): D
     args: [vaultAddress, totalUserAmountUsdcUnits],
   });
 
-  const createPositionData = encodeFunctionData({
-    abi: createPositionPushFundedAbi,
-    functionName: "createPositionPushFunded",
-    args: [
-      toHex(quote.positionSeedHex),
-      toHex(quote.polymarketMarketId),
-      BigInt(quote.polymarketTokenId),
-      BigInt(quote.collateralUsdcUnits),
-      quote.leverageBps,
-      BigInt(quote.notionalUsdcUnits),
-      quote.originationFeeBps,
-      quote.lifetimeFeeAprBps,
-      quote.liquidationFeeBps,
-      BigInt(quote.expectedOpenTradingFeeUsdcUnits),
-      toHex(quote.contractSignature),
-      BigInt(quote.signatureExpiry),
-    ],
-  });
+  const createPositionData = buildPushFundedCreateData(quote);
 
   return [
     { target: vaultAddress, value: 0n, data: reserveDepositData },

@@ -1,7 +1,7 @@
 const pipsPerUsd = 10_000;
 const bpsPerUnit = 10_000;
 const bpsPerPct = 100;
-const minFillBpsMax = 5_000;
+const minFillBpsMax = 7_000;
 const centsFactor = 100;
 const decimalPlaces = 2;
 
@@ -118,8 +118,12 @@ export function quoteErrorHint(code: string | null, params: Params, context: { l
       return { kind: "raise-collateral", minCollateralUsd: pipsToUsd(minCollateralPips) };
     }
 
+    // quote_committed_plan_more_restrictive: the committed plan priced at promotion is harsher than
+    // the one the draft showed, and the server reports the highest leverage that still honours the
+    // draft's terms. Null when nothing would, in which case there is no hint and the user re-quotes.
     case "quote_leverage_exceeds_maximum":
-    case "quote_leverage_exceeds_model_max": {
+    case "quote_leverage_exceeds_model_max":
+    case "quote_committed_plan_more_restrictive": {
       const maxLeverageBps = num(params, "maxLeverageBps");
       if (maxLeverageBps === null) {
         return null;

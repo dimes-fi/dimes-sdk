@@ -55,6 +55,43 @@ describe("DimesClient", () => {
     expect(String(url)).toBe("https://test.api/v1/prediction-markets/markets/SOME%20MARKET");
   });
 
+  it("getEventMarkets — calls GET /events/:eventTicker/markets with URL encoding", async () => {
+    await client.getEventMarkets("NBA LAL BOS");
+    const [url] = mockFetch.mock.calls[0];
+    expect(String(url)).toBe("https://test.api/v1/prediction-markets/events/NBA%20LAL%20BOS/markets");
+  });
+
+  it("getEventMarkets — forwards the same params as getMarkets", async () => {
+    await client.getEventMarkets("NBA-LAL-BOS", { limit: 5, startingAfter: "mkt_9" });
+    const urlStr = String(mockFetch.mock.calls[0][0]);
+    expect(urlStr).toContain("limit=5");
+    expect(urlStr).toContain("starting_after=mkt_9");
+  });
+
+  it("getSeriesMarkets — calls GET /series/:seriesTicker/markets", async () => {
+    await client.getSeriesMarkets("BTC-UP-DOWN-5M");
+    const [url] = mockFetch.mock.calls[0];
+    expect(String(url)).toBe("https://test.api/v1/prediction-markets/series/BTC-UP-DOWN-5M/markets");
+  });
+
+  it("getMarketPositions — calls GET /markets/:ticker/positions", async () => {
+    await client.getMarketPositions("TRUMP-WIN");
+    const [url] = mockFetch.mock.calls[0];
+    expect(String(url)).toBe("https://test.api/v1/prediction-markets/markets/TRUMP-WIN/positions");
+  });
+
+  it("getEventPositions — calls GET /events/:eventTicker/positions", async () => {
+    await client.getEventPositions("NBA-LAL-BOS");
+    const [url] = mockFetch.mock.calls[0];
+    expect(String(url)).toBe("https://test.api/v1/prediction-markets/events/NBA-LAL-BOS/positions");
+  });
+
+  it("getSeriesPositions — calls GET /series/:seriesTicker/positions", async () => {
+    await client.getSeriesPositions("BTC-UP-DOWN-5M");
+    const [url] = mockFetch.mock.calls[0];
+    expect(String(url)).toBe("https://test.api/v1/prediction-markets/series/BTC-UP-DOWN-5M/positions");
+  });
+
   it("createDraftQuote — calls POST /v1/prediction-markets/draft-quotes with decamelized body", async () => {
     mockFetch = createMockFetch({ id: "draft_123" });
     client = createClient(mockFetch);
@@ -77,6 +114,38 @@ describe("DimesClient", () => {
     expect(body.slippage_bps).toBe(100);
   });
 
+  it("createDraftQuote — decamelizes riskMode onto the wire body", async () => {
+    mockFetch = createMockFetch({ id: "draft_123" });
+    client = createClient(mockFetch);
+    await client.createDraftQuote({
+      marketTicker: "TRUMP-WIN",
+      effectiveSide: "yes",
+      leverageBps: 20000,
+      notionalAmountUsdPips: "50000",
+      slippageBps: 100,
+      riskMode: "committed",
+    });
+
+    const body = JSON.parse(mockFetch.mock.calls[0][1]?.body as string);
+    expect(body.risk_mode).toBe("committed");
+  });
+
+  it("getPositionUnwinds — calls GET /positions/:id/unwinds with no query by default", async () => {
+    mockFetch = createMockFetch({ data: [] });
+    client = createClient(mockFetch);
+    await client.getPositionUnwinds("pos_456");
+    const [url] = mockFetch.mock.calls[0];
+    expect(String(url)).toBe("https://test.api/v1/prediction-markets/positions/pos_456/unwinds");
+  });
+
+  it("getPositionUnwinds — asks for the ladder via the status param", async () => {
+    mockFetch = createMockFetch({ data: [] });
+    client = createClient(mockFetch);
+    await client.getPositionUnwinds("pos_456", { status: "planned" });
+    const [url] = mockFetch.mock.calls[0];
+    expect(String(url)).toBe("https://test.api/v1/prediction-markets/positions/pos_456/unwinds?status=planned");
+  });
+
   it("promoteDraftQuote — calls POST /v1/prediction-markets/promoted-quotes/:id", async () => {
     mockFetch = createMockFetch({ id: "promoted_123" });
     client = createClient(mockFetch);
@@ -84,6 +153,14 @@ describe("DimesClient", () => {
     const [url, opts] = mockFetch.mock.calls[0];
     expect(String(url)).toBe("https://test.api/v1/prediction-markets/promoted-quotes/draft_123");
     expect(opts?.method).toBe("POST");
+  });
+
+  it("promoteDraftQuote — sends riskMode in the body, since the draft carries no mode", async () => {
+    mockFetch = createMockFetch({ id: "promoted_123" });
+    client = createClient(mockFetch);
+    await client.promoteDraftQuote("draft_123", { riskMode: "committed" });
+    const body = JSON.parse(mockFetch.mock.calls[0][1]?.body as string);
+    expect(body.risk_mode).toBe("committed");
   });
 
   it("createQuote — calls POST /v1/prediction-markets/quotes with decamelized body", async () => {

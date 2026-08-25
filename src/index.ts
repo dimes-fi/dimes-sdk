@@ -5,6 +5,8 @@ export type {
   GetFeeRatesParams,
   GetMarketsParams,
   GetPositionsParams,
+  GetPositionUnwindsParams,
+  PromoteDraftQuoteParams,
   MarketExpand,
   MarketSort,
   PositionStatus,
@@ -33,6 +35,7 @@ export type { QuoteHint, HintAdjustment, CorrectedField } from "./quote";
 
 export type {
   Market,
+  MarketEvent,
   MarketLeverage,
   MarketFees,
   MarketPrices,
@@ -72,6 +75,7 @@ export type {
   QuoteResult,
   QuoteOptions,
   MarketMovedEvent,
+  RiskMode,
   Side,
   Paginated,
   CamelizeKeys,

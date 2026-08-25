@@ -996,6 +996,17 @@ export interface components {
        */
       leverage_bps: number;
       /**
+       * @description Risk mode the position was opened in. adaptive: the live risk engine manages leverage. committed: the position follows the planned unwinds fixed at quote time.
+       * @example adaptive
+       * @enum {string}
+       */
+      risk_mode: "adaptive" | "committed";
+      /**
+       * @description Extra margin locked in the vault on top of collateral, in USDC units (1,000,000 units = 1 USDC). Zero on adaptive positions.
+       * @example 0
+       */
+      locked_margin_usdc_units: string;
+      /**
        * @description Entry notional formatted as USD
        * @example 5.00
        */
@@ -1085,6 +1096,12 @@ export interface components {
     };
     CustomerPositionUnwind: {
       /**
+       * @description executed: an unwind that landed on-chain, as recorded by the deleveraging itself. planned: a committed-mode rung that fires if the price reaches triggerPriceUsdPips. triggered: a committed-mode rung whose trigger price was reached, stamped with executedAt. superseded: a committed-mode rung that can no longer fire because a partial close already took the position below its target leverage. Rung rows (planned, triggered, superseded) are the signed ladder and are only returned when the request asks for them; they describe what was promised, while executed rows describe what actually happened.
+       * @example executed
+       * @enum {string}
+       */
+      status: "executed" | "planned" | "superseded" | "triggered";
+      /**
        * @description The market signal that triggered the risk-model inference behind this unwind (e.g. `spread_blowout`, `depth_decay`, `price_drop_severe`). Null for unwinds not tied to an inference run, such as manually triggered deleveraging.
        * @example spread_blowout
        * @enum {string|null}
@@ -1123,10 +1140,15 @@ export interface components {
        */
       before_leverage_bps: number;
       /**
-       * @description ISO 8601 timestamp when the unwind was executed on-chain
+       * @description ISO 8601 timestamp when the unwind was executed on-chain. Null on planned unwinds, which have not happened yet.
        * @example 2025-06-02T14:30:00.000Z
        */
-      executed_at: string;
+      executed_at?: string | null;
+      /**
+       * @description Price at which this planned unwind fires, in USD pips (10000 pips = $1). Null on executed unwinds.
+       * @example 4200
+       */
+      trigger_price_usd_pips?: string | null;
       /**
        * @description Human-readable explanation of `reason` — a customer-facing sentence describing the market condition that triggered this deleverage. Null whenever `reason` is null.
        * @example The bid-ask spread widened sharply beyond its recent baseline, signalling thinning liquidity.
@@ -1447,7 +1469,7 @@ export interface components {
        */
       side: "yes" | "no";
       /**
-       * @description Simplified position status
+       * @description Simplified position status. A position that was deleveraged almost entirely and then force-sold for a trivial remainder reports 'settled' once the market resolves against it. The 'status' query parameter still filters on the underlying mechanism, so such a position is returned by status=liquidated.
        * @enum {string}
        */
       status:
@@ -1489,6 +1511,8 @@ export interface components {
        * @example 7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU
        */
       wallet_address: string;
+      /** @description The committed-mode ladder this position was opened on: one row per planned unwind, each with a status of planned, triggered or superseded. Only present when the request includes `expand=planned_unwinds`; omitted otherwise, and empty on adaptive positions. */
+      planned_unwinds?: components["schemas"]["CustomerPositionUnwindList"] | null;
       /**
        * @deprecated
        * @description Deprecated — use `pendingOperation` (a deferred close now surfaces as `{ type: 'close', phase: 'awaiting_settlement' }`). Details of a close request that could not complete and was deferred. Null unless the customer requested a close that is now waiting on market settlement to redeem the remaining tokens.
@@ -1657,7 +1681,7 @@ export interface components {
        */
       side: "yes" | "no";
       /**
-       * @description Simplified position status
+       * @description Simplified position status. A position that was deleveraged almost entirely and then force-sold for a trivial remainder reports 'settled' once the market resolves against it. The 'status' query parameter still filters on the underlying mechanism, so such a position is returned by status=liquidated.
        * @enum {string}
        */
       status:
@@ -1695,11 +1719,13 @@ export interface components {
        * @example 7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU
        */
       wallet_address: string;
+      /** @description The committed-mode ladder this position was opened on: one row per planned unwind, each with a status of planned, triggered or superseded. Only present when the request includes `expand=planned_unwinds`; omitted otherwise, and empty on adaptive positions. */
+      planned_unwinds?: components["schemas"]["CustomerPositionUnwindList"] | null;
       /**
-       * @description Reason the position was closed
+       * @description Reason the position was closed. Reports 'settled' for a position that was deleveraged almost entirely and then force-sold for a trivial remainder on a market that resolved against it.
        * @enum {string}
        */
-      close_reason: "closed" | "liquidated" | "reverted" | "settled";
+      close_reason: "cancelled" | "closed" | "liquidated" | "reverted" | "settled";
       /**
        * @description Why the position was reverted before it opened. Non-null only when `close_reason` is `reverted`: `exchange_unavailable` (the prediction-market venue was temporarily unavailable — safe to retry), `slippage_exceeded` (price moved beyond tolerance before the order filled), or `unknown`.
        * @enum {string|null}
@@ -1863,10 +1889,73 @@ export interface components {
        */
       allow_partial_fill: boolean;
       /**
-       * @description Minimum fill the user will accept, in basis points. Only valid when allowPartialFill=true (rejected otherwise). Must be in [2000, 5000] and divisible by 500 (5% steps). Capped from below by max(2000, ceil(MIN_COLLATERAL × 10000 / requestedCollateral)).
+       * @description Minimum fill the user will accept, in basis points. Only valid when allowPartialFill=true (rejected otherwise). Must be in [2000, 7000] and divisible by 500 (5% steps). Capped from below by max(2000, ceil(MIN_COLLATERAL × 10000 / requestedCollateral)).
        * @example 5000
        */
       min_fill_bps?: number;
+      /**
+       * @description Risk mode for the resulting position. adaptive: the live risk engine manages leverage. committed: the quote carries a fixed set of price-triggered unwinds and the user posts extra margin. A committed request is answered in committed mode or not at all — when the market, price or leverage rules the mode out, the quote is rejected with QUOTE_COMMITTED_RISK_MODE_UNAVAILABLE carrying the reason. Take a draft quote first to see whether the mode is on offer.
+       * @default adaptive
+       * @example committed
+       * @enum {string}
+       */
+      risk_mode: "adaptive" | "committed";
+    };
+    CommittedUnwindUnavailableReason: {
+      /**
+       * @description Machine-readable reason committed mode cannot be offered for this quote
+       * @example cryptoMarket
+       * @enum {string}
+       */
+      code:
+        | "cryptoMarket"
+        | "illegibleMarginTooLarge"
+        | "illegibleTooManyUnwinds"
+        | "invertedRiskBands"
+        | "lateGameSoccer"
+        | "notOfferedOnDeskQuotes";
+      /** @description Human-readable explanation of the same reason */
+      message: string;
+    };
+    PlannedUnwind: {
+      /**
+       * @description Order in which this unwind fires, starting at 0
+       * @example 0
+       */
+      sequence: number;
+      /**
+       * @description Price at which this unwind fires, in USD pips (10000 pips = $1)
+       * @example 4200
+       */
+      trigger_price_usd_pips: string;
+      /**
+       * @description Book leverage the position is unwound to when this fires, in basis points (10000 = 1x)
+       * @example 15000
+       */
+      target_leverage_bps: number;
+      /**
+       * @description Estimated token units sold to reach the target (1000000 units = 1 token). An estimate only — the executed amount depends on the fill.
+       * @example 30000000
+       */
+      token_units_to_sell_estimate: string;
+    };
+    CommittedUnwinds: {
+      /** @description Whether committed mode can be offered for this quote */
+      available: boolean;
+      /** @description Why committed mode is unavailable. Null when it is available. */
+      unavailable_reason?: components["schemas"]["CommittedUnwindUnavailableReason"] | null;
+      /**
+       * @description Extra margin the user must post on top of collateral, in USDC units (1000000 units = 1 USDC)
+       * @example 67000000
+       */
+      margin_required_usdc_units?: string | null;
+      /**
+       * @description Price at which selling the remaining tokens repays the loan in full, in USD pips
+       * @example 2700
+       */
+      debt_clear_price_usd_pips?: string | null;
+      /** @description The pre-committed unwinds, in the order they fire. Empty when committed mode is unavailable. */
+      planned_unwinds?: components["schemas"]["PlannedUnwind"][] | null;
     };
     CustomerOfferMaxGain: {
       /**
@@ -1963,6 +2052,25 @@ export interface components {
        * @example 0x1234567890123456789012345678901234567890
        */
       polygon_vault_contract_address: string;
+      /**
+       * @description Vault function this quote's signature authorizes. createPositionWithMargin for committed quotes, createPosition otherwise. A signature for one will not authorize the other.
+       * @example createPosition
+       * @enum {string}
+       */
+      polygon_vault_function_name: "createPosition" | "createPositionWithMargin";
+      /**
+       * @description Risk mode this quote was issued in. A committed request is answered in committed mode or rejected, so this only reports adaptive when adaptive was asked for.
+       * @example adaptive
+       * @enum {string}
+       */
+      risk_mode: "adaptive" | "committed";
+      /** @description Committed-unwind mode for this quote: the pre-committed unwinds and the extra margin they require, or the reason the mode cannot be offered. */
+      committed_unwinds?: components["schemas"]["CommittedUnwinds"];
+      /**
+       * @description Extra margin locked in the vault on top of collateral, in USDC units (1,000,000 units = 1 USDC). Zero on adaptive quotes. Included in totalUserAmountUsdcUnits.
+       * @example 0
+       */
+      margin_usdc_units: string;
       /**
        * @description Expected trading fee formatted as USD
        * @example 0.02
@@ -2160,10 +2268,19 @@ export interface components {
        */
       total_user_amount_usd_pips: string;
       /**
-       * @description Total amount user must transfer at createPosition in USDC units (1,000,000 units = 1 USDC). Contract-ready value. On Polymarket = collateral + originationFee.
+       * @description Total amount user must transfer at position creation in USDC units (1,000,000 units = 1 USDC). Contract-ready value = collateral + originationFee + expected open trading fee + committed-mode margin.
        * @example 2730000
        */
       total_user_amount_usdc_units: string;
+    };
+    PromoteOfferBody: {
+      /**
+       * @description Risk mode for the promoted offer. The draft carries the committed unwinds it was quoted with; this chooses whether the promoted offer opens on them. Omitted means adaptive.
+       * @default adaptive
+       * @example committed
+       * @enum {string}
+       */
+      risk_mode: "adaptive" | "committed";
     };
   };
   responses: never;
@@ -2420,7 +2537,7 @@ export interface operations {
         starting_after?: string;
         /** @description Cursor for backward pagination. Mutually exclusive with startingAfter. */
         ending_before?: string;
-        /** @description Comma-separated list of additional fields to include in the response. Allowed values: unwinds, total_count. */
+        /** @description Comma-separated list of additional fields to include in the response. Allowed values: unwinds, planned_unwinds, total_count. */
         expand?: string;
         /** @description Field to sort positions by */
         sort_by?: "created_at" | "closed_at";
@@ -2582,7 +2699,7 @@ export interface operations {
   CustomerPositionController_getPositionById: {
     parameters: {
       query?: {
-        /** @description Comma-separated list of related sub-resources to embed inline in the response. Allowed values: unwinds. */
+        /** @description Comma-separated list of related sub-resources to embed inline in the response. Allowed values: unwinds, planned_unwinds. */
         expand?: string;
       };
       header?: never;
@@ -2652,7 +2769,10 @@ export interface operations {
   };
   CustomerPositionUnwindController_listPositionUnwinds: {
     parameters: {
-      query?: never;
+      query?: {
+        /** @description Which unwinds to return. executed (default): only unwinds that already happened. planned: the committed-mode ladder — every rung the position was opened on, whatever its own status (planned, triggered or superseded), not only the rungs whose status is planned. all: both, ladder rows last. */
+        status?: "executed" | "planned" | "all";
+      };
       header?: never;
       path: {
         /** @description Position identifier */
@@ -2684,7 +2804,11 @@ export interface operations {
       };
       cookie?: never;
     };
-    requestBody?: never;
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PromoteOfferBody"];
+      };
+    };
     responses: {
       201: {
         headers: {
@@ -2708,7 +2832,11 @@ export interface operations {
       };
       cookie?: never;
     };
-    requestBody?: never;
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PromoteOfferBody"];
+      };
+    };
     responses: {
       201: {
         headers: {

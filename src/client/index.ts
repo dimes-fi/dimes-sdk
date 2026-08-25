@@ -5,6 +5,8 @@ export type {
   GetFeeRatesParams,
   GetMarketsParams,
   GetPositionsParams,
+  GetPositionUnwindsParams,
+  PromoteDraftQuoteParams,
   MarketExpand,
   MarketSort,
   PositionStatus,

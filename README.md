@@ -78,6 +78,11 @@ const { data: markets } = await client.getMarkets();
 const market = await client.getMarket("will-btc-hit-100k-2026");
 
 console.log(market.leverage.maxBps); // 100000 (10x)
+
+// Narrow to one event (a single game or price window) or one series (the recurring
+// template those events come from). Same params and same market objects as getMarkets.
+const { data: gameMarkets } = await client.getEventMarkets("nba-lal-bos-2026-08-06");
+const { data: seriesMarkets } = await client.getSeriesMarkets("btc-up-or-down-5m");
 ```
 
 ### Execute a quote
@@ -268,8 +273,13 @@ Same API, same contracts, fake USDC. Get a sandbox key via the [Telegram link on
 |----------|--------|------------|
 | `GET /markets` | `client.getMarkets()` | `useMarkets()` |
 | `GET /markets/:ticker` | `client.getMarket(ticker)` | `useMarket(ticker)` |
+| `GET /events/:eventTicker/markets` | `client.getEventMarkets(eventTicker)` | — |
+| `GET /series/:seriesTicker/markets` | `client.getSeriesMarkets(seriesTicker)` | — |
 | `GET /contract-info` | `client.getContractInfo()` | `useContractInfo()` |
 | `GET /positions` | `client.getPositions()` | `usePositions()` |
+| `GET /markets/:ticker/positions` | `client.getMarketPositions(ticker)` | — |
+| `GET /events/:eventTicker/positions` | `client.getEventPositions(eventTicker)` | — |
+| `GET /series/:seriesTicker/positions` | `client.getSeriesPositions(seriesTicker)` | — |
 | `GET /user-limits` | `client.getUserLimits()` | `useUserLimits()` |
 | `GET /partner-limits` | `client.getPartnerLimits()` | `usePartnerLimits()` |
 | `POST /draft-quotes` | `client.createDraftQuote()` | — |

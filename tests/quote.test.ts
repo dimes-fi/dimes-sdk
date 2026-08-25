@@ -79,7 +79,7 @@ describe("executeQuote", () => {
     const result = await executeQuote(client, params);
 
     expect(client.createDraftQuote).toHaveBeenCalledOnce();
-    expect(client.promoteDraftQuote).toHaveBeenCalledWith("dm_dro_draft");
+    expect(client.promoteDraftQuote).toHaveBeenCalledWith("dm_dro_draft", { riskMode: undefined });
     expect(result.quote.id).toBe("dm_off_promoted");
     expect(result.corrections).toHaveLength(0);
     expect(result.retries).toBe(0);

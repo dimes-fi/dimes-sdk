@@ -6,7 +6,16 @@ export type { Hex, Address } from "./evm";
 
 export { buildCreatePositionTx, buildApproveTx, buildRequestCloseTx, buildRequestPartialCloseTx } from "./build-tx";
 
-export type { CreatePositionTxData, ApproveTxData, RequestCloseTxData, RequestPartialCloseTxData } from "./build-tx";
+export type {
+  CreatePositionTxData,
+  CreatePositionWithMarginTxData,
+  OpenPositionTxData,
+  ApproveTxData,
+  RequestCloseTxData,
+  RequestPartialCloseTxData,
+} from "./build-tx";
+
+export { isCommittedQuote } from "./risk-mode";
 
 export {
   depositWalletFactoryAddress,

@@ -10,8 +10,10 @@ import type {
   Paginated,
   Position,
   PositionPartialCloseList,
+  PositionUnwindList,
   PositionTransactions,
   Quote,
+  RiskMode,
 } from "../types";
 import type { AuthProvider } from "./auth";
 import { HttpClient } from "./http";
@@ -47,6 +49,14 @@ export interface GetMarketsParams {
 /** @deprecated Use {@link GetMarketsParams} with `query` and {@link DimesClient.getMarkets}. */
 export interface SearchMarketsParams extends GetMarketsParams {
   query: string;
+}
+
+export interface PromoteDraftQuoteParams {
+  riskMode?: RiskMode;
+}
+
+export interface GetPositionUnwindsParams {
+  status?: "executed" | "planned" | "all";
 }
 
 export interface GetPositionsParams {
@@ -116,6 +126,34 @@ export class DimesClient {
   }
 
   /**
+   * Markets belonging to one event — the real-world happening a market resolves against, such as a
+   * single game or one hourly price window. Read the ticker from `market.event.ticker`.
+   *
+   * Accepts the same params as {@link getMarkets} and returns the same market objects.
+   */
+  public async getEventMarkets(eventTicker: string, params?: GetMarketsParams): Promise<Paginated<Market>> {
+    const query = params ? buildQueryFromEntries(Object.entries(params)) : "";
+    return this.http.request<Paginated<Market>>(
+      `/v1/prediction-markets/events/${encodeURIComponent(eventTicker)}/markets${query}`,
+    );
+  }
+
+  /**
+   * Markets belonging to one series, across every event in it — a series is the recurring template an
+   * event comes from, such as the 5-minute BTC up/down series. Read the ticker from
+   * `market.event.seriesTicker`, which is null for events with no series.
+   *
+   * Accepts the same params as {@link getMarkets}. A series commonly holds more markets than fit on one
+   * page, so paginate with `startingAfter`.
+   */
+  public async getSeriesMarkets(seriesTicker: string, params?: GetMarketsParams): Promise<Paginated<Market>> {
+    const query = params ? buildQueryFromEntries(Object.entries(params)) : "";
+    return this.http.request<Paginated<Market>>(
+      `/v1/prediction-markets/series/${encodeURIComponent(seriesTicker)}/markets${query}`,
+    );
+  }
+
+  /**
    * @deprecated The `/markets/search` path is deprecated. Use {@link getMarkets} with a `query` param:
    * `getMarkets({ query: "bitcoin" })`.
    */
@@ -131,9 +169,18 @@ export class DimesClient {
     });
   }
 
-  public async promoteDraftQuote(draftId: string): Promise<Quote> {
+  /**
+   * Promote a draft into a real, signed quote.
+   *
+   * A draft carries no risk mode at all — sending `riskMode` on the draft body does nothing, and a
+   * draft always reports adaptive terms. The mode the position actually opens in is chosen here, and
+   * omitting it means adaptive, so a client that showed the user committed terms from the draft's
+   * `committedUnwinds` must repeat the choice at promotion or it will get adaptive terms.
+   */
+  public async promoteDraftQuote(draftId: string, params?: PromoteDraftQuoteParams): Promise<Quote> {
     return this.http.request<Quote>(`/v1/prediction-markets/promoted-quotes/${encodeURIComponent(draftId)}`, {
       method: "POST",
+      body: JSON.stringify(decamelizeKeys(params ?? {})),
     });
   }
 
@@ -149,9 +196,48 @@ export class DimesClient {
     return this.http.requestList<Position>(`/v1/prediction-markets/positions${query}`);
   }
 
+  /** Your positions on a single market. Accepts the same params as {@link getPositions}. */
+  public async getMarketPositions(ticker: string, params?: GetPositionsParams): Promise<Position[]> {
+    const query = params ? buildQueryFromEntries(Object.entries(params)) : "";
+    return this.http.requestList<Position>(
+      `/v1/prediction-markets/markets/${encodeURIComponent(ticker)}/positions${query}`,
+    );
+  }
+
+  /** Your positions across every market on one event. Accepts the same params as {@link getPositions}. */
+  public async getEventPositions(eventTicker: string, params?: GetPositionsParams): Promise<Position[]> {
+    const query = params ? buildQueryFromEntries(Object.entries(params)) : "";
+    return this.http.requestList<Position>(
+      `/v1/prediction-markets/events/${encodeURIComponent(eventTicker)}/positions${query}`,
+    );
+  }
+
+  /** Your positions across every market in one series, spanning all of its events. */
+  public async getSeriesPositions(seriesTicker: string, params?: GetPositionsParams): Promise<Position[]> {
+    const query = params ? buildQueryFromEntries(Object.entries(params)) : "";
+    return this.http.requestList<Position>(
+      `/v1/prediction-markets/series/${encodeURIComponent(seriesTicker)}/positions${query}`,
+    );
+  }
+
   public async getPositionTransactions(positionId: string): Promise<PositionTransactions> {
     return this.http.request<PositionTransactions>(
       `/v1/prediction-markets/positions/${encodeURIComponent(positionId)}/transactions`,
+    );
+  }
+
+  /**
+   * Deleverage history for a position, and — for committed-mode positions — the signed ladder.
+   *
+   * `status` defaults to `executed` (unwinds that already landed on-chain). Ask for `planned` to get
+   * the ladder rungs instead, or `all` for both. Rung rows carry `triggerPriceUsdPips` and a `status`
+   * of `planned`, `triggered` (its price was reached) or `superseded` (a partial close put the
+   * position below its target, so it can never fire).
+   */
+  public async getPositionUnwinds(positionId: string, params?: GetPositionUnwindsParams): Promise<PositionUnwindList> {
+    const query = params ? buildQueryFromEntries(Object.entries(params)) : "";
+    return this.http.request<PositionUnwindList>(
+      `/v1/prediction-markets/positions/${encodeURIComponent(positionId)}/unwinds${query}`,
     );
   }
 

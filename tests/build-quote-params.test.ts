@@ -96,6 +96,31 @@ describe("buildQuoteParams", () => {
     expect(result.minFillBps).toBeUndefined();
   });
 
+  it("omits riskMode when not provided, so the wire body stays as it was", () => {
+    const result = buildQuoteParams({
+      marketTicker: "ETH-10K",
+      side: "yes",
+      collateralUsd: 10,
+      leverageBps: 20000,
+      slippageBps: 300,
+    });
+
+    expect("riskMode" in result).toBe(false);
+  });
+
+  it("passes riskMode through so the quote machine's rebuild cannot drop it", () => {
+    const result = buildQuoteParams({
+      marketTicker: "ETH-10K",
+      side: "yes",
+      collateralUsd: 10,
+      leverageBps: 20000,
+      slippageBps: 300,
+      riskMode: "committed",
+    });
+
+    expect(result.riskMode).toBe("committed");
+  });
+
   it("passes marketTicker and effectiveSide through", () => {
     const result = buildQuoteParams({
       marketTicker: "ETH-10K",
