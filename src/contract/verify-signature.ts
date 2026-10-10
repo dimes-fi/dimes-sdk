@@ -3,6 +3,7 @@ import type { DimesClient } from "../client/dimes-client";
 import { DimesContractError } from "../errors/dimes-error";
 import type { ContractInfo, Quote } from "../types";
 import { toHex, toAddress } from "./evm";
+import { isProtocolV2Quote } from "./protocol-version";
 import { isCommittedQuote } from "./risk-mode";
 
 const createPositionTypes = {
@@ -36,6 +37,43 @@ const createPositionWithMarginTypes = {
     { name: "liquidationFeeBps", type: "uint16" },
     { name: "venueFeeUsdcUnits", type: "uint256" },
     { name: "marginUsdcUnits", type: "uint256" },
+    { name: "signatureExpiry", type: "uint256" },
+  ],
+} as const;
+
+const createPositionWithVersionTypes = {
+  CreatePositionWithVersion: [
+    { name: "positionSeed", type: "bytes16" },
+    { name: "user", type: "address" },
+    { name: "marketId", type: "bytes32" },
+    { name: "tokenId", type: "uint256" },
+    { name: "collateralUsdcUnits", type: "uint256" },
+    { name: "leverageBps", type: "uint32" },
+    { name: "notionalUsdcUnits", type: "uint256" },
+    { name: "originationFeeBps", type: "uint16" },
+    { name: "lifetimeFeeAprBps", type: "uint16" },
+    { name: "liquidationFeeBps", type: "uint16" },
+    { name: "venueFeeUsdcUnits", type: "uint256" },
+    { name: "protocolVersion", type: "uint8" },
+    { name: "signatureExpiry", type: "uint256" },
+  ],
+} as const;
+
+const createPositionWithMarginAndVersionTypes = {
+  CreatePositionWithMarginAndVersion: [
+    { name: "positionSeed", type: "bytes16" },
+    { name: "user", type: "address" },
+    { name: "marketId", type: "bytes32" },
+    { name: "tokenId", type: "uint256" },
+    { name: "collateralUsdcUnits", type: "uint256" },
+    { name: "leverageBps", type: "uint32" },
+    { name: "notionalUsdcUnits", type: "uint256" },
+    { name: "originationFeeBps", type: "uint16" },
+    { name: "lifetimeFeeAprBps", type: "uint16" },
+    { name: "liquidationFeeBps", type: "uint16" },
+    { name: "venueFeeUsdcUnits", type: "uint256" },
+    { name: "marginUsdcUnits", type: "uint256" },
+    { name: "protocolVersion", type: "uint8" },
     { name: "signatureExpiry", type: "uint256" },
   ],
 } as const;
@@ -92,10 +130,35 @@ function buildMessage(quote: Quote, userAddress: `0x${string}`): CreatePositionM
  * Recover the address that signed this quote.
  *
  * A committed-mode quote is signed over `CreatePositionWithMargin`, a separate EIP-712 type
- * carrying `marginUsdcUnits`; recovering it against the adaptive type would yield a garbage
- * address, so the type is chosen from the quote itself.
+ * carrying `marginUsdcUnits`, and a Polymarket Protocol V2 quote over `CreatePositionWithVersion` /
+ * `CreatePositionWithMarginAndVersion`, which also carry `protocolVersion`. Recovering against the
+ * wrong type would yield a garbage address, so the type is chosen from the quote itself.
  */
 export async function recoverCreatePositionSigner(quote: Quote, userAddress: `0x${string}`): Promise<`0x${string}`> {
+  if (isProtocolV2Quote(quote)) {
+    if (isCommittedQuote(quote)) {
+      return recoverTypedDataAddress({
+        domain: buildDomain(quote),
+        types: createPositionWithMarginAndVersionTypes,
+        primaryType: "CreatePositionWithMarginAndVersion",
+        message: {
+          ...buildMessage(quote, userAddress),
+          marginUsdcUnits: BigInt(quote.marginUsdcUnits),
+          protocolVersion: quote.polymarketProtocolVersion,
+        },
+        signature: toHex(quote.contractSignature),
+      });
+    }
+
+    return recoverTypedDataAddress({
+      domain: buildDomain(quote),
+      types: createPositionWithVersionTypes,
+      primaryType: "CreatePositionWithVersion",
+      message: { ...buildMessage(quote, userAddress), protocolVersion: quote.polymarketProtocolVersion },
+      signature: toHex(quote.contractSignature),
+    });
+  }
+
   if (isCommittedQuote(quote)) {
     return recoverTypedDataAddress({
       domain: buildDomain(quote),

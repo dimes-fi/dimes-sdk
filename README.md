@@ -159,6 +159,12 @@ await walletClient.writeContract(approveTx);
 await walletClient.writeContract(createTx);
 ```
 
+`buildCreatePositionTx` and `buildPushFundedCreateCalls` pick the vault function from the quote:
+`riskMode` chooses between the plain and `...WithMargin` calls, and `polymarketProtocolVersion` 2
+(a Polymarket Protocol V2 market) chooses their `...WithVersion` / `...WithMarginAndVersion` twins.
+`isCommittedQuote(quote)` and `isProtocolV2Quote(quote)` expose the same two decisions if you
+encode the call yourself; a signature only verifies against the function it was issued for.
+
 #### Primitives (build it differently)
 
 - `recoverCreatePositionSigner(quote, user)` — pure EIP-712 recovery; compare the

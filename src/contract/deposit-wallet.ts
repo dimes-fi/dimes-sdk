@@ -2,6 +2,7 @@ import { encodeFunctionData } from "viem";
 import type { Quote } from "../types";
 import { vaultAbi } from "./abi";
 import { toAddress, toHex, type Address, type Hex } from "./evm";
+import { isProtocolV2Quote } from "./protocol-version";
 import { isCommittedQuote } from "./risk-mode";
 
 /**
@@ -14,6 +15,7 @@ import { isCommittedQuote } from "./risk-mode";
  *   1. `vault.reserveDeposit(totalUserAmount)`  — snapshot the vault pUSD balance
  *   2. `pUSD.transfer(vault, totalUserAmount)`   — push the funds directly
  *   3. `vault.createPositionPushFunded(...)`     — verify the balance delta + create
+ *      (or its `...WithMargin` / `...WithVersion` / `...WithMarginAndVersion` twin, read off the quote)
  *
  * Closing follows the same batch mechanics with a single inner call, `requestClose`.
  */
@@ -111,6 +113,55 @@ const createPositionPushFundedWithMarginAbi = [
   },
 ] as const;
 
+const createPositionPushFundedWithVersionAbi = [
+  {
+    type: "function",
+    name: "createPositionPushFundedWithVersion",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "positionSeed", type: "bytes16" },
+      { name: "marketId", type: "bytes32" },
+      { name: "tokenId", type: "uint256" },
+      { name: "collateralUsdcUnits", type: "uint256" },
+      { name: "leverageBps", type: "uint32" },
+      { name: "notionalUsdcUnits", type: "uint256" },
+      { name: "originationFeeBps", type: "uint16" },
+      { name: "lifetimeFeeAprBps", type: "uint16" },
+      { name: "liquidationFeeBps", type: "uint16" },
+      { name: "venueFeeUsdcUnits", type: "uint256" },
+      { name: "protocolVersion", type: "uint8" },
+      { name: "signature", type: "bytes" },
+      { name: "signatureExpiry", type: "uint256" },
+    ],
+    outputs: [],
+  },
+] as const;
+
+const createPositionPushFundedWithMarginAndVersionAbi = [
+  {
+    type: "function",
+    name: "createPositionPushFundedWithMarginAndVersion",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "positionSeed", type: "bytes16" },
+      { name: "marketId", type: "bytes32" },
+      { name: "tokenId", type: "uint256" },
+      { name: "collateralUsdcUnits", type: "uint256" },
+      { name: "leverageBps", type: "uint32" },
+      { name: "notionalUsdcUnits", type: "uint256" },
+      { name: "originationFeeBps", type: "uint16" },
+      { name: "lifetimeFeeAprBps", type: "uint16" },
+      { name: "liquidationFeeBps", type: "uint16" },
+      { name: "venueFeeUsdcUnits", type: "uint256" },
+      { name: "marginUsdcUnits", type: "uint256" },
+      { name: "protocolVersion", type: "uint8" },
+      { name: "signature", type: "bytes" },
+      { name: "signatureExpiry", type: "uint256" },
+    ],
+    outputs: [],
+  },
+] as const;
+
 const erc20TransferAbi = [
   {
     type: "function",
@@ -137,6 +188,33 @@ function buildPushFundedCreateData(quote: Quote): Hex {
     quote.liquidationFeeBps,
     BigInt(quote.expectedOpenTradingFeeUsdcUnits),
   ] as const;
+
+  if (isProtocolV2Quote(quote)) {
+    if (isCommittedQuote(quote)) {
+      return encodeFunctionData({
+        abi: createPositionPushFundedWithMarginAndVersionAbi,
+        functionName: "createPositionPushFundedWithMarginAndVersion",
+        args: [
+          ...commonArgs,
+          BigInt(quote.marginUsdcUnits),
+          quote.polymarketProtocolVersion,
+          toHex(quote.contractSignature),
+          BigInt(quote.signatureExpiry),
+        ],
+      });
+    }
+
+    return encodeFunctionData({
+      abi: createPositionPushFundedWithVersionAbi,
+      functionName: "createPositionPushFundedWithVersion",
+      args: [
+        ...commonArgs,
+        quote.polymarketProtocolVersion,
+        toHex(quote.contractSignature),
+        BigInt(quote.signatureExpiry),
+      ],
+    });
+  }
 
   if (isCommittedQuote(quote)) {
     return encodeFunctionData({
@@ -166,8 +244,10 @@ function buildPushFundedCreateData(quote: Quote): Hex {
  * reservation and the transfer. The vault checks the pushed amount for exact equality, so
  * a committed quote whose margin was left out of the transfer reverts the whole batch.
  *
- * A committed quote is opened through `createPositionPushFundedWithMargin`, chosen from the
- * quote itself — see {@link isCommittedQuote}.
+ * A committed quote is opened through `createPositionPushFundedWithMargin`, and a Polymarket
+ * Protocol V2 quote through `createPositionPushFundedWithVersion` /
+ * `createPositionPushFundedWithMarginAndVersion`, all chosen from the quote itself — see
+ * {@link isCommittedQuote} and {@link isProtocolV2Quote}.
  *
  * @param quote - the signed quote returned by the quote endpoint
  * @param pUsdAddress - the pUSD (USDC) token address (from `GET /contract-info`)

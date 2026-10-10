@@ -7,7 +7,8 @@ import { getCachedContractInfo, verifyQuoteSignature } from "./verify-signature"
 /**
  * Verify a quote's signature against the on-chain authority (using the client's
  * cached `/contract-info`) and then build the transaction that opens the position —
- * `createPosition`, or `createPositionWithMargin` for a committed-mode quote.
+ * `createPosition`, `createPositionWithMargin` for a committed-mode quote, or their
+ * `...Version` twins for a Polymarket Protocol V2 quote.
  *
  * Prefer this over the raw {@link buildCreatePositionTx} so a tampered or stale
  * quote fails fast in the client instead of reverting on-chain. Throws

@@ -202,6 +202,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/prediction-markets/markets/{ticker}/positions": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List your positions for a market
+     * @description Paginated list of the authenticated customer's positions on a single market. Accepts the same filters, sort orders, cursors and expand values as GET /positions. Supersedes the deprecated ticker query parameter on GET /positions.
+     */
+    get: operations["CustomerMarketPositionController_listMarketPositions"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/prediction-markets/sample-events": {
     parameters: {
       query?: never;
@@ -280,6 +300,46 @@ export interface paths {
     get?: never;
     put?: never;
     post: operations["CustomerOfferController_createDraftQuote"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/prediction-markets/events/{event_ticker}/markets": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List markets for an event
+     * @description Paginated list of the markets belonging to a single event. Accepts the same filters, sort orders, cursors and expand values as GET /markets, and returns the same market objects.
+     */
+    get: operations["CustomerEventController_listEventMarkets"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/prediction-markets/events/{event_ticker}/positions": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List your positions for an event
+     * @description Paginated list of the authenticated customer's positions on markets belonging to a single event. Accepts the same filters, sort orders, cursors and expand values as GET /positions.
+     */
+    get: operations["CustomerEventController_listEventPositions"];
+    put?: never;
+    post?: never;
     delete?: never;
     options?: never;
     head?: never;
@@ -367,6 +427,46 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/prediction-markets/series/{series_ticker}/markets": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List markets for a series
+     * @description Paginated list of the markets belonging to a single series, across every event in that series. Accepts the same filters, sort orders, cursors and expand values as GET /markets, and returns the same market objects.
+     */
+    get: operations["CustomerSeriesController_listSeriesMarkets"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/v1/prediction-markets/series/{series_ticker}/positions": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List your positions for a series
+     * @description Paginated list of the authenticated customer's positions on markets belonging to a single series, across every event in that series. Accepts the same filters, sort orders, cursors and expand values as GET /positions.
+     */
+    get: operations["CustomerSeriesController_listSeriesPositions"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/v1/prediction-markets/promoted-quotes/{draft_offer_id}": {
     parameters: {
       query?: never;
@@ -440,6 +540,1130 @@ export interface components {
        * @example 0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc
        */
       polygon_vault_contract_address: string;
+    };
+    CustomerPositionEntry: {
+      /**
+       * @description Entry collateral actually charged, formatted as USD. On a partial fill the vault refunds the unused share at open, and this is net of that refund.
+       * @example 2.50
+       */
+      collateral_usd: string;
+      /**
+       * @description Entry collateral actually charged, in USD pips (10000 pips = $1). On a partial fill the vault refunds the unused share at open, and this is net of that refund.
+       * @example 25000
+       */
+      collateral_usd_pips: string;
+      /**
+       * @description Entry leverage in basis points (20000 = 2x)
+       * @example 20000
+       */
+      leverage_bps: number;
+      /**
+       * @description Risk mode the position was opened in. adaptive: the live risk engine manages leverage. committed: the position follows the planned unwinds fixed at quote time.
+       * @example adaptive
+       * @enum {string}
+       */
+      risk_mode: "adaptive" | "committed";
+      /**
+       * @description Extra margin locked in the vault on top of collateral, formatted as USD. Zero on adaptive positions.
+       * @example 0.00
+       */
+      locked_margin_usd: string;
+      /**
+       * @description Extra margin locked in the vault on top of collateral, in USDC units (1,000,000 units = 1 USDC). Zero on adaptive positions.
+       * @example 0
+       */
+      locked_margin_usdc_units: string;
+      /**
+       * @description Entry notional formatted as USD
+       * @example 5.00
+       */
+      notional_usd: string;
+      /**
+       * @description Entry notional in USD pips
+       * @example 50000
+       */
+      notional_usd_pips: string;
+      /**
+       * @description Time in milliseconds from position creation to on-chain open confirmation. Null until the position is fully opened on chain.
+       * @example 12500
+       */
+      open_latency_ms?: number | null;
+      /**
+       * @description ISO 8601 timestamp when position was opened
+       * @example 2025-01-15T10:30:00.000Z
+       */
+      opened_at?: string;
+      /**
+       * @description Combined origination fee in basis points. `protocolOriginationFeeBps + partnerOriginationFeeBps === originationFeeBps`.
+       * @example 100
+       */
+      origination_fee_bps: number;
+      /**
+       * @description Protocol portion of the origination fee in basis points. `protocolOriginationFeeBps + partnerOriginationFeeBps === originationFeeBps`.
+       * @example 80
+       */
+      protocol_origination_fee_bps: number;
+      /**
+       * @description Partner portion of the origination fee in basis points. `protocolOriginationFeeBps + partnerOriginationFeeBps === originationFeeBps`.
+       * @example 20
+       */
+      partner_origination_fee_bps: number;
+      /**
+       * @description Origination fee actually charged, formatted as USD. On a partial fill the vault refunds the unused share of the reserved fee at open, and this is net of that refund.
+       * @example 0.05
+       */
+      origination_fee_usd: string;
+      /**
+       * @description Origination fee actually charged, in USD pips. On a partial fill this is net of the open-time refund.
+       * @example 500
+       */
+      origination_fee_usd_pips: string;
+      /**
+       * @description Entry price formatted as USD
+       * @example 0.50
+       */
+      price_usd: string;
+      /**
+       * @description Entry price in USD pips
+       * @example 5000
+       */
+      price_usd_pips: string;
+      /**
+       * @description Effective entry price (actual fill price on the prediction market) formatted as USD, computed as the notional actually spent divided by the tokens actually delivered. On a partial fill this reflects the filled portion only, so it never exceeds $1.00. Null until the fill is recorded on chain.
+       * @example 0.5025
+       */
+      effective_entry_price_usd?: string | null;
+      /**
+       * @description Effective entry price in USD pips. Null until the fill is recorded on chain.
+       * @example 5025
+       */
+      effective_entry_price_usd_pips?: string | null;
+      /**
+       * @description Execution slippage between the offer's indicative entry price and the actual fill price, in basis points. Signed: positive means the fill was worse than the quote, negative means the fill was better. Null until the fill is recorded on chain.
+       * @example 50
+       */
+      effective_slippage_bps?: number | null;
+      /**
+       * @description Original position token units delivered when the position opened (1000000 units = 1 token). Unlike `current.positionTokenUnits` (the live, possibly partially-closed survivor), this is the fixed size credited at open and is the basis for the partial-close minimum. Null until the open fill is recorded on chain.
+       * @example 10000000
+       */
+      position_token_units?: string | null;
+      /**
+       * @description How much of the requested size was actually filled when the position opened, in basis points (10000 = 100%). Computed as actual open notional / requested notional and FROZEN at open — it does NOT change when the position is partially closed. Use this for an 'opened at X% of requested' badge. Null until the open fill is recorded on chain.
+       * @example 9657
+       */
+      initial_fill_bps?: number | null;
+    };
+    CustomerPositionFailure: {
+      /**
+       * @description Failure reason code
+       * @example price_exceeded_tolerance
+       */
+      reason: string;
+    };
+    CustomerPositionUnwind: {
+      /**
+       * @description executed: an unwind that landed on-chain, as recorded by the deleveraging itself. planned: a committed-mode rung that fires if the price reaches triggerPriceUsdPips. triggered: a committed-mode rung whose trigger price was reached, stamped with executedAt. superseded: a committed-mode rung that can no longer fire because a partial close already took the position below its target leverage. Rung rows (planned, triggered, superseded) are the signed ladder and are only returned when the request asks for them; they describe what was promised, while executed rows describe what actually happened.
+       * @example executed
+       * @enum {string}
+       */
+      status: "executed" | "planned" | "superseded" | "triggered";
+      /**
+       * @description The market signal that triggered the risk-model inference behind this unwind (e.g. `spread_blowout`, `depth_decay`, `price_drop_severe`). Null for unwinds not tied to an inference run, such as manually triggered deleveraging.
+       * @example spread_blowout
+       * @enum {string|null}
+       */
+      reason?:
+        | "activity_surge"
+        | "cancel_acceleration"
+        | "crypto_move"
+        | "depth_decay"
+        | "depth_drain"
+        | "depth_entry_drain"
+        | "game_start"
+        | "large_holder"
+        | "last_trade_divergence"
+        | "lead_change"
+        | "post_hard_exit_losing"
+        | "position_exposure"
+        | "price_drop_full_exit"
+        | "price_drop_moderate"
+        | "price_drop_severe"
+        | "price_drop_warning"
+        | "spread_blowout"
+        | "spread_spike"
+        | "spread_warning"
+        | "stale_refresh"
+        | "unknown"
+        | null;
+      /**
+       * @description Leverage after unwind in basis points (20000 = 2x)
+       * @example 30000
+       */
+      after_leverage_bps: number;
+      /**
+       * @description Leverage before unwind in basis points (20000 = 2x)
+       * @example 60000
+       */
+      before_leverage_bps: number;
+      /**
+       * @description ISO 8601 timestamp when the unwind was executed on-chain. Null on planned unwinds, which have not happened yet.
+       * @example 2025-06-02T14:30:00.000Z
+       */
+      executed_at?: string | null;
+      /**
+       * @description Price at which this planned unwind fires, formatted as USD. Null on executed unwinds.
+       * @example 0.42
+       */
+      trigger_price_usd?: string | null;
+      /**
+       * @description Price at which this planned unwind fires, in USD pips (10000 pips = $1). Null on executed unwinds.
+       * @example 4200
+       */
+      trigger_price_usd_pips?: string | null;
+      /**
+       * @description Human-readable explanation of `reason` — a customer-facing sentence describing the market condition that triggered this deleverage. Null whenever `reason` is null.
+       * @example The bid-ask spread widened sharply beyond its recent baseline, signalling thinning liquidity.
+       */
+      reason_detail?: string | null;
+    };
+    CustomerPositionUnwindList: {
+      data: components["schemas"]["CustomerPositionUnwind"][];
+      has_more: boolean;
+      total_count?: number;
+      /**
+       * @description Current leverage of the position in basis points (20000 = 2x), null if not yet calculated
+       * @example 30000
+       */
+      current_leverage_bps: number | null;
+      /**
+       * @description ISO 8601 timestamp when the position was opened on-chain (null if not yet opened)
+       * @example 2025-06-01T12:00:00.000Z
+       */
+      originated_at: string | null;
+      /**
+       * @description Leverage at position origination in basis points (20000 = 2x)
+       * @example 60000
+       */
+      origination_leverage_bps: number;
+    };
+    CustomerCloseAttempt: {
+      /**
+       * @description Outcome of the close attempt. `deferred` means the close could not complete yet and was postponed.
+       * @enum {string}
+       */
+      outcome: "deferred";
+      /**
+       * @description Why the close was deferred. `awaiting_settlement`: the market resolved before the position could be sold, so the remaining tokens will be redeemed when the market settles rather than sold on the order book.
+       * @enum {string}
+       */
+      reason: "awaiting_settlement";
+      /**
+       * @description ISO-8601 timestamp of when the close was requested.
+       * @example 2026-06-15T17:27:11.736Z
+       */
+      deferred_at: string;
+    };
+    CustomerPendingOperation: {
+      /**
+       * @description The lifecycle operation currently in flight on this position. Present whenever the position is mid-operation (open, close, partial close, unwind, liquidate, or settle); null when the position is at rest. Note `status` stays `open` throughout a `partial_close`, so this is the only signal a slice is in flight after a reload.
+       * @enum {string}
+       */
+      type: "open" | "close" | "partial_close" | "unwind" | "liquidate" | "settle";
+      /**
+       * @description Sub-state of the operation: `requested` (submitted, not yet executing), `initiated` (executing on the venue), `pending` (tokens withdrawn, finalizing on chain), `awaiting_settlement` (a close deferred until the market settles). Null when the operation has no distinct phase.
+       * @example initiated
+       * @enum {string|null}
+       */
+      phase?: "requested" | "initiated" | "pending" | "awaiting_settlement" | null;
+      /**
+       * @description Token units involved in the in-flight operation (1000000 units = 1 token). For `partial_close` this is the slice being closed; for `close`/`liquidate` the units withdrawn; for the awaiting-settlement close the remaining tokens. Null when the operation carries no specific token amount.
+       * @example 5000000
+       */
+      token_units?: string | null;
+    };
+    CustomerPositionCurrent: {
+      /**
+       * @description Current book-value leverage in basis points (20000 = 2x)
+       * @example 18000
+       */
+      book_leverage_bps: number;
+      /**
+       * @description Current collateral formatted as USD
+       * @example 2.50
+       */
+      collateral_usd: string;
+      /**
+       * @description Current collateral in USD pips
+       * @example 25000
+       */
+      collateral_usd_pips: string;
+      /**
+       * @description Effective collateral formatted as USD
+       * @example 2.45
+       */
+      effective_collateral_usd: string;
+      /**
+       * @description Effective collateral after fees in USD pips
+       * @example 24500
+       */
+      effective_collateral_usd_pips: string;
+      /**
+       * @deprecated
+       * @description Current leverage in basis points
+       * @example 18000
+       */
+      leverage_bps: number;
+      /**
+       * @description Current market-value leverage in basis points, computed from the live oracle price. Null when the position is insolvent (equity <= 0).
+       * @example 19500
+       */
+      market_leverage_bps?: number | null;
+      /**
+       * @description Current mark price formatted as USD
+       * @example 0.55
+       */
+      mark_price_usd: string;
+      /**
+       * @description Current mark price in USD pips
+       * @example 5500
+       */
+      mark_price_usd_pips: string;
+      /**
+       * @description Unrealized PnL net of all fees (origination + pending lifetime + accrued venue) as return on equity in basis points
+       * @example 1800
+       */
+      net_unrealized_pnl_bps: number;
+      /**
+       * @description Unrealized PnL net of all fees (origination + pending lifetime + accrued venue) formatted as USD
+       * @example 0.45
+       */
+      net_unrealized_pnl_usd: string;
+      /**
+       * @description Unrealized PnL net of all fees (origination + pending lifetime + accrued venue) in USD pips (can be negative)
+       * @example 4500
+       */
+      net_unrealized_pnl_usd_pips: string;
+      /**
+       * @description Current notional formatted as USD
+       * @example 5.50
+       */
+      notional_usd: string;
+      /**
+       * @description Current notional in USD pips
+       * @example 55000
+       */
+      notional_usd_pips: string;
+      /**
+       * @description Smallest partial-close slice the contract will accept right now, in token units (1000000 units = 1 token): `max(5 tokens, 20% of the original opened size)`. Null when the position is not partial-closeable (an operation is already in flight, the open fill isn't recorded yet, or the survivor is below the minimum).
+       * @example 5000000
+       */
+      min_partial_close_token_units?: string | null;
+      /**
+       * @description Largest partial-close slice allowed right now, in token units (1000000 units = 1 token). Two bounds apply and this is the tighter of them: a position may partial-close at most 80% of its original opened size in total over its life (past that only a full close remains), and no single slice may drop the survivor's collateral below the on-chain minimum. Null when the position is not partial-closeable.
+       * @example 10000000
+       */
+      max_partial_close_token_units?: string | null;
+      /**
+       * @description Position token units held (1000000 units = 1 token)
+       * @example 10000000
+       */
+      position_token_units: string;
+      /**
+       * @description Fraction of the originally opened size still held, in basis points (10000 = 100%). Computed as current token units / original opened token units. This LEGITIMATELY DECREASES after each partial close (e.g. 7000 = 70% remaining after a 30% close) and is not a fill problem. Null until the open fill is recorded on chain.
+       * @example 7000
+       */
+      remaining_bps?: number | null;
+      /**
+       * @description Total position value formatted as USD
+       * @example 3.00
+       */
+      position_value_usd: string;
+      /**
+       * @description Total position value in USD pips
+       * @example 30000
+       */
+      position_value_usd_pips: string;
+      /**
+       * @description Unrealized PnL as return on equity in basis points (1000 = 10%)
+       * @example 2000
+       */
+      unrealized_pnl_bps: number;
+      /**
+       * @description Unrealized PnL formatted as USD
+       * @example 0.50
+       */
+      unrealized_pnl_usd: string;
+      /**
+       * @description Unrealized PnL in USD pips (can be negative)
+       * @example 5000
+       */
+      unrealized_pnl_usd_pips: string;
+    };
+    CustomerPositionOpenFees: {
+      /**
+       * @description Accrued lifetime fee formatted as USD
+       * @example 0.01
+       */
+      accrued_lifetime_fee_usd: string;
+      /**
+       * @description Accrued lifetime fee in USD pips
+       * @example 100
+       */
+      accrued_lifetime_fee_usd_pips: string;
+      /**
+       * @description Venue (Polymarket) trading fees paid so far on this position, summed across open and any force-unwind exchange transactions, formatted as USD.
+       * @example 0.02
+       */
+      accrued_venue_fee_usd: string;
+      /**
+       * @description Venue trading fees paid so far on this position in USD pips.
+       * @example 200
+       */
+      accrued_venue_fee_usd_pips: string;
+      /**
+       * @description Lifetime fee APR in basis points
+       * @example 500
+       */
+      lifetime_apr_bps: number;
+      /**
+       * @description Pending lifetime fee formatted as USD
+       * @example 0.005
+       */
+      pending_lifetime_fee_usd: string;
+      /**
+       * @description Pending lifetime fee in USD pips
+       * @example 50
+       */
+      pending_lifetime_fee_usd_pips: string;
+      /**
+       * @description Sum of all fees accrued or owed so far (origination + accrued lifetime + pending lifetime + accrued venue), formatted as USD. Mirrors closed positions' `fees.totalFeesUsd`.
+       * @example 0.085
+       */
+      total_fees_usd: string;
+      /**
+       * @description Sum of all fees accrued or owed so far (origination + accrued lifetime + pending lifetime + accrued venue) in USD pips.
+       * @example 850
+       */
+      total_fees_usd_pips: string;
+    };
+    CustomerPositionRisk: {
+      /**
+       * @description Current liquidation price formatted as USD
+       * @example 0.35
+       */
+      current_liquidation_price_usd: string;
+      /**
+       * @description Current liquidation price in USD pips
+       * @example 3500
+       */
+      current_liquidation_price_usd_pips: string;
+      /**
+       * @description Margin health 0-10000 (10000 at entry, 0 at liquidation)
+       * @example 7500
+       */
+      health_bps: number;
+      /**
+       * @description Buffer to liquidation in basis points
+       * @example 500
+       */
+      liquidation_buffer_bps: number;
+      /**
+       * @description Liquidation fee in basis points
+       * @example 200
+       */
+      liquidation_fee_bps: number;
+      /**
+       * @description Dollar distance to liquidation formatted as USD
+       * @example 0.50
+       */
+      margin_buffer_usd: string;
+      /**
+       * @description Dollar distance to liquidation in USD pips
+       * @example 5000
+       */
+      margin_buffer_usd_pips: string;
+    };
+    CustomerPositionTiming: {
+      /** @description Whether settlement is pending (market resolved or voided, settlement not yet executed) */
+      is_settlement_pending: boolean;
+      /** @description Whether the market was voided (closed with no winner, 50/50 payout at $0.50 per token) */
+      is_voided: boolean;
+      /**
+       * @description ISO 8601 timestamp when market closes
+       * @example 2025-01-20T12:00:00.000Z
+       */
+      market_close_time?: string;
+      /**
+       * @description Market status from the prediction market provider. When 'determined' or 'finalized', mark price reflects the settlement outcome ($1 or $0)
+       * @example active
+       * @enum {string}
+       */
+      market_status:
+        | "active"
+        | "amended"
+        | "closed"
+        | "determined"
+        | "disputed"
+        | "finalized"
+        | "inactive"
+        | "initialized";
+      /**
+       * @description Where this market sits on the road to settlement. `none` — still trading, nothing pending. `awaiting_resolution` — the market has closed and the outcome is decided, but the prediction market provider has not yet published the result on chain, so nothing can be redeemed yet. `settling` — the result is published and we are settling the position. `voided` — the market was voided and every token pays out at $0.50. `unresolved_upstream` — the market disappeared from the provider before publishing a result and may never resolve.
+       * @example awaiting_resolution
+       * @enum {string}
+       */
+      settlement_state: "awaiting_resolution" | "none" | "settling" | "unresolved_upstream" | "voided";
+      /**
+       * @description Minutes until market closes
+       * @example 1440
+       */
+      time_to_close_minutes?: number;
+    };
+    CustomerOpenPosition: {
+      /** @description Entry details */
+      entry: components["schemas"]["CustomerPositionEntry"];
+      /** @description Failure details if the position failed */
+      failure?: components["schemas"]["CustomerPositionFailure"];
+      /**
+       * @description Position ID
+       * @example dm_pos_abc123
+       */
+      id: string;
+      /**
+       * @description Name of the partner the position was opened through.
+       * @example Acme Markets
+       */
+      partner: string;
+      /**
+       * @description Prediction market provider
+       * @enum {string}
+       */
+      provider: "polymarket";
+      /**
+       * @description Market side
+       * @enum {string}
+       */
+      side: "yes" | "no";
+      /**
+       * @description Simplified position status. A position that was deleveraged almost entirely and then force-sold for a trivial remainder reports 'settled' once the market resolves against it. The 'status' query parameter still filters on the underlying mechanism, so such a position is returned by status=liquidated.
+       * @enum {string}
+       */
+      status:
+        | "pending"
+        | "open"
+        | "unwinding"
+        | "closing"
+        | "settling"
+        | "closed"
+        | "settled"
+        | "liquidated"
+        | "cancelled";
+      /** @description Inline unwind history. Only present when the request includes `expand=unwinds`; omitted otherwise. */
+      unwinds?: components["schemas"]["CustomerPositionUnwindList"] | null;
+      /** @description Current position state */
+      current: components["schemas"]["CustomerPositionCurrent"];
+      /** @description Fee details for open position */
+      fees: components["schemas"]["CustomerPositionOpenFees"];
+      /** @description Risk metrics */
+      risk: components["schemas"]["CustomerPositionRisk"];
+      /** @description Timing information */
+      timing: components["schemas"]["CustomerPositionTiming"];
+      /**
+       * @description Time-weighted average structural leverage in basis points over position lifetime (20000 = 2x)
+       * @example 84000
+       */
+      effective_leverage_bps: number;
+      /**
+       * @description Market ticker identifier
+       * @example TRUMP-2024-WIN
+       */
+      market_ticker: string;
+      /** @description Market title */
+      market_title?: string;
+      /** @description On-chain position key (bytes32) for requestClose", example: "0xabc123... */
+      on_chain_position_key: string;
+      /**
+       * @description Wallet address (Solana public key or EVM address)
+       * @example 7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU
+       */
+      wallet_address: string;
+      /** @description The committed-mode ladder this position was opened on: one row per planned unwind, each with a status of planned, triggered or superseded. Only present when the request includes `expand=planned_unwinds`; omitted otherwise, and empty on adaptive positions. */
+      planned_unwinds?: components["schemas"]["CustomerPositionUnwindList"] | null;
+      /**
+       * @deprecated
+       * @description Deprecated — use `pendingOperation` (a deferred close now surfaces as `{ type: 'close', phase: 'awaiting_settlement' }`). Details of a close request that could not complete and was deferred. Null unless the customer requested a close that is now waiting on market settlement to redeem the remaining tokens.
+       */
+      close_attempt?: components["schemas"]["CustomerCloseAttempt"] | null;
+      /** @description The lifecycle operation currently in flight on this position, or null when the position is at rest. Survives reload (unlike the ephemeral websocket events), so a UI can show that a close / partial close / unwind / settle is in progress after re-fetching REST. */
+      pending_operation?: components["schemas"]["CustomerPendingOperation"] | null;
+    };
+    CustomerPositionClosedFees: {
+      /**
+       * @description Lifetime fee APR in basis points
+       * @example 500
+       */
+      lifetime_apr_bps: number;
+      /**
+       * @deprecated
+       * @description Deprecated — use `entry.originationFeeBps`. Same value, kept for backwards compatibility.
+       * @example 100
+       */
+      origination_fee_bps: number;
+      /**
+       * @deprecated
+       * @description Deprecated — use `entry.protocolOriginationFeeBps`. Same value, kept for backwards compatibility.
+       * @example 80
+       */
+      protocol_origination_fee_bps: number;
+      /**
+       * @deprecated
+       * @description Deprecated — use `entry.partnerOriginationFeeBps`. Same value, kept for backwards compatibility.
+       * @example 20
+       */
+      partner_origination_fee_bps: number;
+      /**
+       * @deprecated
+       * @description Deprecated — use `entry.originationFeeUsd`. Same value, kept for backwards compatibility.
+       * @example 0.05
+       */
+      origination_fee_usd: string;
+      /**
+       * @deprecated
+       * @description Deprecated — use `entry.originationFeeUsdPips`. Same value, kept for backwards compatibility.
+       * @example 500
+       */
+      origination_fee_usd_pips: string;
+      /**
+       * @description Total blended fees formatted as USD
+       * @example 0.085
+       */
+      total_fees_usd: string;
+      /**
+       * @description Total blended fees (origination + lifetime + liquidation + venue) in USD pips
+       * @example 850
+       */
+      total_fees_usd_pips: string;
+      /**
+       * @description Total lifetime fee formatted as USD
+       * @example 0.015
+       */
+      total_lifetime_fee_usd: string;
+      /**
+       * @description Total lifetime fee collected in USD pips
+       * @example 150
+       */
+      total_lifetime_fee_usd_pips: string;
+      /**
+       * @description Total venue (Polymarket) trading fees collected across the position lifetime (open + close/liquidation/settle + force-unwind), formatted as USD.
+       * @example 0.02
+       */
+      total_venue_fee_usd: string;
+      /**
+       * @description Total venue trading fees collected across the position lifetime in USD pips.
+       * @example 200
+       */
+      total_venue_fee_usd_pips: string;
+    };
+    CustomerPositionResult: {
+      /**
+       * @description ISO 8601 timestamp when position was closed
+       * @example 2025-01-16T14:30:00.000Z
+       */
+      closed_at: string;
+      /**
+       * @description Collected lifetime fee formatted as USD
+       * @example 0.015
+       */
+      collected_lifetime_fee_usd: string;
+      /**
+       * @description Collected lifetime fee in USD pips
+       * @example 150
+       */
+      collected_lifetime_fee_usd_pips: string;
+      /**
+       * @description Collected liquidation fee formatted as USD
+       * @example 0.00
+       */
+      collected_liquidation_fee_usd: string;
+      /**
+       * @description Collected liquidation fee in USD pips
+       * @example 0
+       */
+      collected_liquidation_fee_usd_pips: string;
+      /**
+       * @description Volume-weighted notional realized across all unwinds and the final close, formatted as USD. Null for reverted or cancelled positions.
+       * @example 5.25
+       */
+      exit_notional_usd?: string | null;
+      /**
+       * @description Exit notional in USD pips. Null for reverted or cancelled positions.
+       * @example 52500
+       */
+      exit_notional_usd_pips?: string | null;
+      /**
+       * @description Whether every amount in this block is settled and will not be restated. False while the closing, liquidating or settling transaction is still in flight, when proceeds have not yet been credited and the PnL figures are provisional. Always true for reverted and cancelled positions, which have no proceeds to credit. Wait for true before booking a result. Absent on responses served by a pod that predates this field, so treat a missing value as not-yet-determined rather than as false.
+       * @example true
+       */
+      is_final?: boolean;
+      /**
+       * @description Realized PnL net of all fees (origination + lifetime + liquidation + venue) as return on equity in basis points
+       * @example 1700
+       */
+      net_realized_pnl_bps: number;
+      /**
+       * @description Realized PnL net of all fees (origination + lifetime + liquidation + venue) formatted as USD
+       * @example 0.435
+       */
+      net_realized_pnl_usd: string;
+      /**
+       * @description Realized PnL net of all fees (origination + lifetime + liquidation + venue) in USD pips (can be negative)
+       * @example 4350
+       */
+      net_realized_pnl_usd_pips: string;
+      /**
+       * @description Proceeds formatted as USD
+       * @example 3.00
+       */
+      proceeds_usd: string;
+      /**
+       * @description Proceeds returned to user in USD pips
+       * @example 30000
+       */
+      proceeds_usd_pips: string;
+      /**
+       * @description Realized PnL formatted as USD
+       * @example 0.50
+       */
+      realized_pnl_usd: string;
+      /**
+       * @description Realized PnL in USD pips (can be negative)
+       * @example 5000
+       */
+      realized_pnl_usd_pips: string;
+    };
+    CustomerClosedPosition: {
+      /** @description Entry details */
+      entry: components["schemas"]["CustomerPositionEntry"];
+      /** @description Failure details if the position failed */
+      failure?: components["schemas"]["CustomerPositionFailure"];
+      /**
+       * @description Position ID
+       * @example dm_pos_abc123
+       */
+      id: string;
+      /**
+       * @description Name of the partner the position was opened through.
+       * @example Acme Markets
+       */
+      partner: string;
+      /**
+       * @description Prediction market provider
+       * @enum {string}
+       */
+      provider: "polymarket";
+      /**
+       * @description Market side
+       * @enum {string}
+       */
+      side: "yes" | "no";
+      /**
+       * @description Simplified position status. A position that was deleveraged almost entirely and then force-sold for a trivial remainder reports 'settled' once the market resolves against it. The 'status' query parameter still filters on the underlying mechanism, so such a position is returned by status=liquidated.
+       * @enum {string}
+       */
+      status:
+        | "pending"
+        | "open"
+        | "unwinding"
+        | "closing"
+        | "settling"
+        | "closed"
+        | "settled"
+        | "liquidated"
+        | "cancelled";
+      /** @description Inline unwind history. Only present when the request includes `expand=unwinds`; omitted otherwise. */
+      unwinds?: components["schemas"]["CustomerPositionUnwindList"] | null;
+      /** @description Fee details for closed position */
+      fees: components["schemas"]["CustomerPositionClosedFees"];
+      /** @description Position result/outcome */
+      result: components["schemas"]["CustomerPositionResult"];
+      /**
+       * @description Time-weighted average structural leverage in basis points over position lifetime (20000 = 2x)
+       * @example 84000
+       */
+      effective_leverage_bps: number;
+      /**
+       * @description Market ticker identifier
+       * @example TRUMP-2024-WIN
+       */
+      market_ticker: string;
+      /** @description Market title */
+      market_title?: string;
+      /** @description On-chain position key (bytes32) for requestClose", example: "0xabc123... */
+      on_chain_position_key: string;
+      /**
+       * @description Wallet address (Solana public key or EVM address)
+       * @example 7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU
+       */
+      wallet_address: string;
+      /** @description The committed-mode ladder this position was opened on: one row per planned unwind, each with a status of planned, triggered or superseded. Only present when the request includes `expand=planned_unwinds`; omitted otherwise, and empty on adaptive positions. */
+      planned_unwinds?: components["schemas"]["CustomerPositionUnwindList"] | null;
+      /**
+       * @description Reason the position was closed. Reports 'settled' for a position that was deleveraged almost entirely and then force-sold for a trivial remainder on a market that resolved against it.
+       * @enum {string}
+       */
+      close_reason: "cancelled" | "closed" | "liquidated" | "reverted" | "settled";
+      /**
+       * @description Why the position was reverted before it opened. Non-null only when `close_reason` is `reverted`: `exchange_unavailable` (the prediction-market venue was temporarily unavailable — safe to retry), `slippage_exceeded` (price moved beyond tolerance before the order filled), or `unknown`.
+       * @enum {string|null}
+       */
+      revert_reason?: "exchange_unavailable" | "slippage_exceeded" | "unknown" | null;
+    };
+    CustomerMarketEvent: {
+      /**
+       * @description Ticker of the event this market belongs to — the real-world happening the market resolves against, such as one game or one hourly price window. Pass it to GET /events/{event_ticker}/markets to list every market on the same event.
+       * @example btc-updown-5m-1786109700
+       */
+      ticker: string;
+      /**
+       * @description Human-readable event title, or null when the upstream feed did not supply one.
+       * @example Bitcoin Up or Down - August 7, 9:35AM-9:40AM ET
+       */
+      title: string | null;
+      /**
+       * @description Ticker of the series this event belongs to, or null when the event has no series. Pass it to GET /series/{series_ticker}/markets to list every market in the series.
+       * @example btc-up-or-down-5m
+       */
+      series_ticker: string | null;
+    };
+    CustomerOriginationTier: {
+      /**
+       * @description Origination fee in basis points for this tier
+       * @example 100
+       */
+      fee_bps: number;
+      /**
+       * @description Maximum leverage in basis points for this tier
+       * @example 20000
+       */
+      max_leverage_bps: number;
+    };
+    CustomerFees: {
+      /**
+       * @description Lifetime fee APR in basis points
+       * @example 500
+       */
+      lifetime_apr_bps: number;
+      /**
+       * @description Liquidation fee in basis points
+       * @example 200
+       */
+      liquidation_bps: number;
+      /** @description Origination fee tiers by leverage */
+      origination_tiers: components["schemas"]["CustomerOriginationTier"][];
+    };
+    CustomerMaxMarketLeveragePerNotional: {
+      /**
+       * @description Maximum market leverage in basis points when the position notional is $100
+       * @example 100000
+       */
+      at100_usd_bps: number;
+      /**
+       * @description Maximum market leverage in basis points when the position notional is $500
+       * @example 80000
+       */
+      at500_usd_bps: number;
+      /**
+       * @description Maximum market leverage in basis points when the position notional is $1,000
+       * @example 60000
+       */
+      at1000_usd_bps: number;
+      /**
+       * @description Maximum market leverage in basis points when the position notional is $10,000
+       * @example 30000
+       */
+      at10000_usd_bps: number;
+    };
+    CustomerSidedMaxMarketLeveragePerNotional: {
+      /** @description Per-notional max market leverage for the YES side */
+      yes: components["schemas"]["CustomerMaxMarketLeveragePerNotional"];
+      /** @description Per-notional max market leverage for the NO side */
+      no: components["schemas"]["CustomerMaxMarketLeveragePerNotional"];
+    };
+    CustomerLeverage: {
+      /**
+       * @deprecated
+       * @description Deprecated: use maxYesBps and maxNoBps. Populated as min(maxYesBps, maxNoBps) for backwards compatibility.
+       * @example 50000
+       */
+      max_bps: number;
+      /** @description Max market leverage per side, broken out by position notional. Slippage grows with notional, so larger notionals have lower max leverage. The UI slider should publish the leverage that matches the user's selected notional. */
+      max_market_leverage_per_notional: components["schemas"]["CustomerSidedMaxMarketLeveragePerNotional"];
+      /**
+       * @description Maximum leverage in basis points for the NO side
+       * @example 50000
+       */
+      max_no_bps: number;
+      /**
+       * @description Maximum leverage in basis points for the YES side
+       * @example 50000
+       */
+      max_yes_bps: number;
+      /**
+       * @description Minimum leverage in basis points
+       * @example 10000
+       */
+      min_bps: number;
+      /**
+       * @description Leverage step increment in basis points
+       * @example 1000
+       */
+      step_bps: number;
+    };
+    CustomerMarketPolymarket: {
+      /**
+       * @description Polymarket market slug, matching the slug in Polymarket URLs and Gamma API responses.
+       * @example will-trump-win-the-2024-election
+       */
+      slug: string;
+      /**
+       * @description Polymarket CTF condition ID for this market. Use it to look the market up on Polymarket's CLOB and Gamma APIs. Null for the small number of markets where Polymarket has not exposed a condition ID.
+       * @example 0xabc123def4567890abc123def4567890abc123def4567890abc123def4567890
+       */
+      condition_id?: string | null;
+      /**
+       * @description Polymarket CLOB token ID for the NO outcome (the ERC1155 position token ID).
+       * @example 71321045679252212594626385532706912750332728571942532289631379312455583992563
+       */
+      no_token_id: string;
+      /**
+       * @description Polymarket CLOB token ID for the YES outcome (the ERC1155 position token ID).
+       * @example 21742633143463906290569050155826241533067272736897614950488156847949938836455
+       */
+      yes_token_id: string;
+    };
+    CustomerSideEligibility: {
+      /**
+       * @description Whether this market is accepting new positions on this side
+       * @example true
+       */
+      accepting_new_positions: boolean;
+      /**
+       * @description Reason code if this side is not accepting new positions; null when accepting
+       * @example QUOTE_MARKET_NOT_ELIGIBLE
+       */
+      rejection_reason_code?: string | null;
+    };
+    CustomerSidedEligibility: {
+      /** @description Eligibility for the YES side */
+      yes: components["schemas"]["CustomerSideEligibility"];
+      /** @description Eligibility for the NO side */
+      no: components["schemas"]["CustomerSideEligibility"];
+    };
+    CustomerMarketPrices: {
+      /**
+       * @description NO side ask price formatted as USD
+       * @example 0.51
+       */
+      no_ask_price_usd: string;
+      /**
+       * @description NO side ask price in USD pips (10000 pips = $1)
+       * @example 5100
+       */
+      no_ask_price_usd_pips: string;
+      /**
+       * @description NO side bid price formatted as USD
+       * @example 0.49
+       */
+      no_bid_price_usd: string;
+      /**
+       * @description NO side bid price in USD pips (10000 pips = $1)
+       * @example 4900
+       */
+      no_bid_price_usd_pips: string;
+      /**
+       * @description YES side ask price formatted as USD
+       * @example 0.51
+       */
+      yes_ask_price_usd: string;
+      /**
+       * @description YES side ask price in USD pips (10000 pips = $1)
+       * @example 5100
+       */
+      yes_ask_price_usd_pips: string;
+      /**
+       * @description YES side bid price formatted as USD
+       * @example 0.49
+       */
+      yes_bid_price_usd: string;
+      /**
+       * @description YES side bid price in USD pips (10000 pips = $1)
+       * @example 4900
+       */
+      yes_bid_price_usd_pips: string;
+    };
+    CustomerMarket: {
+      /**
+       * @description Market category
+       * @example politics
+       */
+      category: string;
+      /** @description The event this market belongs to. Use its tickers to fetch sibling markets or your own positions scoped to the same event or series. */
+      event: components["schemas"]["CustomerMarketEvent"];
+      /** @description Fee configuration */
+      fees: components["schemas"]["CustomerFees"];
+      /**
+       * @description Market ID
+       * @example dm_mkt_abc123
+       */
+      id: string;
+      /** @description Leverage configuration */
+      leverage: components["schemas"]["CustomerLeverage"];
+      /**
+       * @description Prediction market provider
+       * @enum {string}
+       */
+      provider: "polymarket";
+      /**
+       * @description Current market status
+       * @enum {string}
+       */
+      status: "active" | "amended" | "closed" | "determined" | "disputed" | "finalized" | "inactive" | "initialized";
+      /**
+       * @description Market tags for filtering
+       * @example [
+       *       "politics",
+       *       "election"
+       *     ]
+       */
+      tags: string[];
+      /** @description Polymarket identifiers for this market, for mapping our markets onto Polymarket data feeds. Always present (all live markets are Polymarket-sourced). */
+      polymarket: components["schemas"]["CustomerMarketPolymarket"];
+      /**
+       * @deprecated
+       * @description Deprecated: use `polymarket.slug`. Market ticker sourced from the upstream trading venue.
+       * @example will-trump-win-the-2024-election
+       */
+      ticker: string;
+      /** @description Market title */
+      title?: string;
+      /** @description Latest bid/ask prices for YES and NO sides. Only present when the request includes `expand=prices`. */
+      prices?: components["schemas"]["CustomerMarketPrices"] | null;
+      /**
+       * @description Whether this market is accepting new positions
+       * @example true
+       */
+      accepting_new_positions: boolean;
+      /**
+       * @description ISO 8601 timestamp when market closes
+       * @example 2025-01-20T12:00:00.000Z
+       */
+      close_time?: string;
+      /**
+       * @description ISO 8601 timestamp when this market was first discovered and listed on the platform
+       * @example 2025-01-10T08:00:00.000Z
+       */
+      discovered_at: string;
+      /**
+       * @description ISO 8601 timestamp of the latest time a new position can be opened in this market
+       * @example 2025-01-20T11:30:00.000Z
+       */
+      latest_enter_at?: string;
+      /**
+       * @description Minimum collateral amount formatted as USD
+       * @example 0.02
+       */
+      min_collateral_usd: string;
+      /**
+       * @description Minimum collateral amount in USD pips (10000 pips = $1)
+       * @example 200000
+       */
+      min_collateral_usd_pips: string;
+      /**
+       * @description Minimum notional amount formatted as USD
+       * @example 5.00
+       */
+      min_notional_usd: string;
+      /**
+       * @description Minimum notional amount in USD pips (10000 pips = $1)
+       * @example 50000
+       */
+      min_notional_usd_pips: string;
+      /**
+       * @description Where this market sits on the road to settlement. `none` — still trading, nothing pending. `awaiting_resolution` — the market has closed and the outcome is decided, but the prediction market provider has not yet published the result on chain, so nothing can be redeemed yet. `settling` — the result is published and open positions are being settled. `voided` — the market was voided and every token pays out at $0.50. `unresolved_upstream` — the market disappeared from the provider before publishing a result and may never resolve.
+       * @example none
+       * @enum {string}
+       */
+      settlement_state: "awaiting_resolution" | "none" | "settling" | "unresolved_upstream" | "voided";
+      /**
+       * @description Capacity-limited maximum notional for NO side formatted as USD
+       * @example 50.00
+       */
+      capacity_max_notional_no_usd?: string | null;
+      /**
+       * @description Capacity-limited maximum notional for NO side in USD pips (10000 pips = $1)
+       * @example 500000000
+       */
+      capacity_max_notional_no_usd_pips?: string | null;
+      /**
+       * @description Capacity-limited maximum notional for YES side formatted as USD
+       * @example 50.00
+       */
+      capacity_max_notional_yes_usd?: string | null;
+      /**
+       * @description Capacity-limited maximum notional for YES side in USD pips (10000 pips = $1)
+       * @example 500000000
+       */
+      capacity_max_notional_yes_usd_pips?: string | null;
+      /**
+       * @description Maximum notional available for NO side formatted as USD. Bounded by slippage, capacity, the partner's remaining position limit, and the per-user position limit (assuming a user with no open positions).
+       * @example 50.00
+       */
+      max_notional_no_usd?: string;
+      /**
+       * @description Maximum notional available for NO side in USD pips (10000 pips = $1). Bounded by slippage, capacity, the partner's remaining position limit, and the per-user position limit (assuming a user with no open positions).
+       * @example 500000000
+       */
+      max_notional_no_usd_pips?: string;
+      /**
+       * @description Maximum notional available for YES side formatted as USD. Bounded by slippage, capacity, the partner's remaining position limit, and the per-user position limit (assuming a user with no open positions).
+       * @example 50.00
+       */
+      max_notional_yes_usd?: string;
+      /**
+       * @description Maximum notional available for YES side in USD pips (10000 pips = $1). Bounded by slippage, capacity, the partner's remaining position limit, and the per-user position limit (assuming a user with no open positions).
+       * @example 500000000
+       */
+      max_notional_yes_usd_pips?: string;
+      /**
+       * @description Slippage-limited maximum notional for NO side formatted as USD
+       * @example 50.00
+       */
+      slippage_max_notional_no_usd?: string | null;
+      /**
+       * @description Slippage-limited maximum notional for NO side in USD pips (10000 pips = $1)
+       * @example 500000000
+       */
+      slippage_max_notional_no_usd_pips?: string | null;
+      /**
+       * @description Slippage-limited maximum notional for YES side formatted as USD
+       * @example 50.00
+       */
+      slippage_max_notional_yes_usd?: string | null;
+      /**
+       * @description Slippage-limited maximum notional for YES side in USD pips (10000 pips = $1)
+       * @example 500000000
+       */
+      slippage_max_notional_yes_usd_pips?: string | null;
+      /**
+       * @description Reason code if market is not accepting new positions
+       * @example QUOTE_MARKET_NOT_ELIGIBLE
+       */
+      rejection_reason_code?: string;
+      /** @description Per-side eligibility. A market may accept positions on one side while rejecting the other (e.g. thin opposite-side liquidity, side max-leverage below the floor). */
+      sided_eligibility: components["schemas"]["CustomerSidedEligibility"];
+      /** @description Subtitle for the YES outcome */
+      yes_sub_title?: string;
     };
     CustomerOriginationFeeTier: {
       /**
@@ -652,1086 +1876,6 @@ export interface components {
        */
       usage_usd_pips: string;
     };
-    CustomerOriginationTier: {
-      /**
-       * @description Origination fee in basis points for this tier
-       * @example 100
-       */
-      fee_bps: number;
-      /**
-       * @description Maximum leverage in basis points for this tier
-       * @example 20000
-       */
-      max_leverage_bps: number;
-    };
-    CustomerFees: {
-      /**
-       * @description Lifetime fee APR in basis points
-       * @example 500
-       */
-      lifetime_apr_bps: number;
-      /**
-       * @description Liquidation fee in basis points
-       * @example 200
-       */
-      liquidation_bps: number;
-      /** @description Origination fee tiers by leverage */
-      origination_tiers: components["schemas"]["CustomerOriginationTier"][];
-    };
-    CustomerMaxMarketLeveragePerNotional: {
-      /**
-       * @description Maximum market leverage in basis points when the position notional is $100
-       * @example 100000
-       */
-      at100_usd_bps: number;
-      /**
-       * @description Maximum market leverage in basis points when the position notional is $500
-       * @example 80000
-       */
-      at500_usd_bps: number;
-      /**
-       * @description Maximum market leverage in basis points when the position notional is $1,000
-       * @example 60000
-       */
-      at1000_usd_bps: number;
-      /**
-       * @description Maximum market leverage in basis points when the position notional is $10,000
-       * @example 30000
-       */
-      at10000_usd_bps: number;
-    };
-    CustomerSidedMaxMarketLeveragePerNotional: {
-      /** @description Per-notional max market leverage for the YES side */
-      yes: components["schemas"]["CustomerMaxMarketLeveragePerNotional"];
-      /** @description Per-notional max market leverage for the NO side */
-      no: components["schemas"]["CustomerMaxMarketLeveragePerNotional"];
-    };
-    CustomerLeverage: {
-      /**
-       * @deprecated
-       * @description Deprecated: use maxYesBps and maxNoBps. Populated as min(maxYesBps, maxNoBps) for backwards compatibility.
-       * @example 50000
-       */
-      max_bps: number;
-      /** @description Max market leverage per side, broken out by position notional. Slippage grows with notional, so larger notionals have lower max leverage. The UI slider should publish the leverage that matches the user's selected notional. */
-      max_market_leverage_per_notional: components["schemas"]["CustomerSidedMaxMarketLeveragePerNotional"];
-      /**
-       * @description Maximum leverage in basis points for the NO side
-       * @example 50000
-       */
-      max_no_bps: number;
-      /**
-       * @description Maximum leverage in basis points for the YES side
-       * @example 50000
-       */
-      max_yes_bps: number;
-      /**
-       * @description Minimum leverage in basis points
-       * @example 10000
-       */
-      min_bps: number;
-      /**
-       * @description Leverage step increment in basis points
-       * @example 1000
-       */
-      step_bps: number;
-    };
-    CustomerMarketPolymarket: {
-      /**
-       * @description Polymarket market slug, matching the slug in Polymarket URLs and Gamma API responses.
-       * @example will-trump-win-the-2024-election
-       */
-      slug: string;
-      /**
-       * @description Polymarket CTF condition ID for this market. Use it to look the market up on Polymarket's CLOB and Gamma APIs. Null for the small number of markets where Polymarket has not exposed a condition ID.
-       * @example 0xabc123def4567890abc123def4567890abc123def4567890abc123def4567890
-       */
-      condition_id?: string | null;
-      /**
-       * @description Polymarket CLOB token ID for the NO outcome (the ERC1155 position token ID).
-       * @example 71321045679252212594626385532706912750332728571942532289631379312455583992563
-       */
-      no_token_id: string;
-      /**
-       * @description Polymarket CLOB token ID for the YES outcome (the ERC1155 position token ID).
-       * @example 21742633143463906290569050155826241533067272736897614950488156847949938836455
-       */
-      yes_token_id: string;
-    };
-    CustomerSideEligibility: {
-      /**
-       * @description Whether this market is accepting new positions on this side
-       * @example true
-       */
-      accepting_new_positions: boolean;
-      /**
-       * @description Reason code if this side is not accepting new positions; null when accepting
-       * @example QUOTE_MARKET_NOT_ELIGIBLE
-       */
-      rejection_reason_code?: string | null;
-    };
-    CustomerSidedEligibility: {
-      /** @description Eligibility for the YES side */
-      yes: components["schemas"]["CustomerSideEligibility"];
-      /** @description Eligibility for the NO side */
-      no: components["schemas"]["CustomerSideEligibility"];
-    };
-    CustomerMarketPrices: {
-      /**
-       * @description NO side ask price formatted as USD
-       * @example 0.51
-       */
-      no_ask_price_usd: string;
-      /**
-       * @description NO side ask price in USD pips (10000 pips = $1)
-       * @example 5100
-       */
-      no_ask_price_usd_pips: string;
-      /**
-       * @description NO side bid price formatted as USD
-       * @example 0.49
-       */
-      no_bid_price_usd: string;
-      /**
-       * @description NO side bid price in USD pips (10000 pips = $1)
-       * @example 4900
-       */
-      no_bid_price_usd_pips: string;
-      /**
-       * @description YES side ask price formatted as USD
-       * @example 0.51
-       */
-      yes_ask_price_usd: string;
-      /**
-       * @description YES side ask price in USD pips (10000 pips = $1)
-       * @example 5100
-       */
-      yes_ask_price_usd_pips: string;
-      /**
-       * @description YES side bid price formatted as USD
-       * @example 0.49
-       */
-      yes_bid_price_usd: string;
-      /**
-       * @description YES side bid price in USD pips (10000 pips = $1)
-       * @example 4900
-       */
-      yes_bid_price_usd_pips: string;
-    };
-    CustomerMarket: {
-      /**
-       * @description Market category
-       * @example politics
-       */
-      category: string;
-      /** @description Fee configuration */
-      fees: components["schemas"]["CustomerFees"];
-      /**
-       * @description Market ID
-       * @example dm_mkt_abc123
-       */
-      id: string;
-      /** @description Leverage configuration */
-      leverage: components["schemas"]["CustomerLeverage"];
-      /**
-       * @description Prediction market provider
-       * @enum {string}
-       */
-      provider: "polymarket";
-      /**
-       * @description Current market status
-       * @enum {string}
-       */
-      status: "active" | "amended" | "closed" | "determined" | "disputed" | "finalized" | "inactive" | "initialized";
-      /**
-       * @description Market tags for filtering
-       * @example [
-       *       "politics",
-       *       "election"
-       *     ]
-       */
-      tags: string[];
-      /** @description Polymarket identifiers for this market, for mapping our markets onto Polymarket data feeds. Always present (all live markets are Polymarket-sourced). */
-      polymarket: components["schemas"]["CustomerMarketPolymarket"];
-      /**
-       * @deprecated
-       * @description Deprecated: use `polymarket.slug`. Market ticker sourced from the upstream trading venue.
-       * @example will-trump-win-the-2024-election
-       */
-      ticker: string;
-      /** @description Market title */
-      title?: string;
-      /** @description Latest bid/ask prices for YES and NO sides. Only present when the request includes `expand=prices`. */
-      prices?: components["schemas"]["CustomerMarketPrices"] | null;
-      /**
-       * @description Whether this market is accepting new positions
-       * @example true
-       */
-      accepting_new_positions: boolean;
-      /**
-       * @description ISO 8601 timestamp when market closes
-       * @example 2025-01-20T12:00:00.000Z
-       */
-      close_time?: string;
-      /**
-       * @description ISO 8601 timestamp when this market was first discovered and listed on the platform
-       * @example 2025-01-10T08:00:00.000Z
-       */
-      discovered_at: string;
-      /**
-       * @description ISO 8601 timestamp of the latest time a new position can be opened in this market
-       * @example 2025-01-20T11:30:00.000Z
-       */
-      latest_enter_at?: string;
-      /**
-       * @description Minimum collateral amount formatted as USD
-       * @example 0.02
-       */
-      min_collateral_usd: string;
-      /**
-       * @description Minimum collateral amount in USD pips (10000 pips = $1)
-       * @example 200000
-       */
-      min_collateral_usd_pips: string;
-      /**
-       * @description Minimum notional amount formatted as USD
-       * @example 5.00
-       */
-      min_notional_usd: string;
-      /**
-       * @description Minimum notional amount in USD pips (10000 pips = $1)
-       * @example 50000
-       */
-      min_notional_usd_pips: string;
-      /**
-       * @description Where this market sits on the road to settlement. `none` — still trading, nothing pending. `awaiting_resolution` — the market has closed and the outcome is decided, but the prediction market provider has not yet published the result on chain, so nothing can be redeemed yet. `settling` — the result is published and open positions are being settled. `voided` — the market was voided and every token pays out at $0.50. `unresolved_upstream` — the market disappeared from the provider before publishing a result and may never resolve.
-       * @example none
-       * @enum {string}
-       */
-      settlement_state: "awaiting_resolution" | "none" | "settling" | "unresolved_upstream" | "voided";
-      /**
-       * @description Capacity-limited maximum notional for NO side formatted as USD
-       * @example 50.00
-       */
-      capacity_max_notional_no_usd?: string | null;
-      /**
-       * @description Capacity-limited maximum notional for NO side in USD pips (10000 pips = $1)
-       * @example 500000000
-       */
-      capacity_max_notional_no_usd_pips?: string | null;
-      /**
-       * @description Capacity-limited maximum notional for YES side formatted as USD
-       * @example 50.00
-       */
-      capacity_max_notional_yes_usd?: string | null;
-      /**
-       * @description Capacity-limited maximum notional for YES side in USD pips (10000 pips = $1)
-       * @example 500000000
-       */
-      capacity_max_notional_yes_usd_pips?: string | null;
-      /**
-       * @description Maximum notional available for NO side formatted as USD. Bounded by slippage, capacity, the partner's remaining position limit, and the per-user position limit (assuming a user with no open positions).
-       * @example 50.00
-       */
-      max_notional_no_usd?: string;
-      /**
-       * @description Maximum notional available for NO side in USD pips (10000 pips = $1). Bounded by slippage, capacity, the partner's remaining position limit, and the per-user position limit (assuming a user with no open positions).
-       * @example 500000000
-       */
-      max_notional_no_usd_pips?: string;
-      /**
-       * @description Maximum notional available for YES side formatted as USD. Bounded by slippage, capacity, the partner's remaining position limit, and the per-user position limit (assuming a user with no open positions).
-       * @example 50.00
-       */
-      max_notional_yes_usd?: string;
-      /**
-       * @description Maximum notional available for YES side in USD pips (10000 pips = $1). Bounded by slippage, capacity, the partner's remaining position limit, and the per-user position limit (assuming a user with no open positions).
-       * @example 500000000
-       */
-      max_notional_yes_usd_pips?: string;
-      /**
-       * @description Slippage-limited maximum notional for NO side formatted as USD
-       * @example 50.00
-       */
-      slippage_max_notional_no_usd?: string | null;
-      /**
-       * @description Slippage-limited maximum notional for NO side in USD pips (10000 pips = $1)
-       * @example 500000000
-       */
-      slippage_max_notional_no_usd_pips?: string | null;
-      /**
-       * @description Slippage-limited maximum notional for YES side formatted as USD
-       * @example 50.00
-       */
-      slippage_max_notional_yes_usd?: string | null;
-      /**
-       * @description Slippage-limited maximum notional for YES side in USD pips (10000 pips = $1)
-       * @example 500000000
-       */
-      slippage_max_notional_yes_usd_pips?: string | null;
-      /**
-       * @description Reason code if market is not accepting new positions
-       * @example QUOTE_MARKET_NOT_ELIGIBLE
-       */
-      rejection_reason_code?: string;
-      /** @description Per-side eligibility. A market may accept positions on one side while rejecting the other (e.g. thin opposite-side liquidity, side max-leverage below the floor). */
-      sided_eligibility: components["schemas"]["CustomerSidedEligibility"];
-      /** @description Subtitle for the YES outcome */
-      yes_sub_title?: string;
-    };
-    CustomerPositionEntry: {
-      /**
-       * @description Entry collateral formatted as USD
-       * @example 2.50
-       */
-      collateral_usd: string;
-      /**
-       * @description Entry collateral in USD pips (10000 pips = $1)
-       * @example 25000
-       */
-      collateral_usd_pips: string;
-      /**
-       * @description Entry leverage in basis points (20000 = 2x)
-       * @example 20000
-       */
-      leverage_bps: number;
-      /**
-       * @description Risk mode the position was opened in. adaptive: the live risk engine manages leverage. committed: the position follows the planned unwinds fixed at quote time.
-       * @example adaptive
-       * @enum {string}
-       */
-      risk_mode: "adaptive" | "committed";
-      /**
-       * @description Extra margin locked in the vault on top of collateral, in USDC units (1,000,000 units = 1 USDC). Zero on adaptive positions.
-       * @example 0
-       */
-      locked_margin_usdc_units: string;
-      /**
-       * @description Entry notional formatted as USD
-       * @example 5.00
-       */
-      notional_usd: string;
-      /**
-       * @description Entry notional in USD pips
-       * @example 50000
-       */
-      notional_usd_pips: string;
-      /**
-       * @description Time in milliseconds from position creation to on-chain open confirmation. Null until the position is fully opened on chain.
-       * @example 12500
-       */
-      open_latency_ms?: number | null;
-      /**
-       * @description ISO 8601 timestamp when position was opened
-       * @example 2025-01-15T10:30:00.000Z
-       */
-      opened_at?: string;
-      /**
-       * @description Combined origination fee in basis points. `protocolOriginationFeeBps + partnerOriginationFeeBps === originationFeeBps`.
-       * @example 100
-       */
-      origination_fee_bps: number;
-      /**
-       * @description Protocol portion of the origination fee in basis points. `protocolOriginationFeeBps + partnerOriginationFeeBps === originationFeeBps`.
-       * @example 80
-       */
-      protocol_origination_fee_bps: number;
-      /**
-       * @description Partner portion of the origination fee in basis points. `protocolOriginationFeeBps + partnerOriginationFeeBps === originationFeeBps`.
-       * @example 20
-       */
-      partner_origination_fee_bps: number;
-      /**
-       * @description Origination fee formatted as USD
-       * @example 0.05
-       */
-      origination_fee_usd: string;
-      /**
-       * @description Origination fee in USD pips
-       * @example 500
-       */
-      origination_fee_usd_pips: string;
-      /**
-       * @description Entry price formatted as USD
-       * @example 0.50
-       */
-      price_usd: string;
-      /**
-       * @description Entry price in USD pips
-       * @example 5000
-       */
-      price_usd_pips: string;
-      /**
-       * @description Effective entry price (actual fill price on the prediction market) formatted as USD. Null until the fill is recorded on chain.
-       * @example 0.5025
-       */
-      effective_entry_price_usd?: string | null;
-      /**
-       * @description Effective entry price in USD pips. Null until the fill is recorded on chain.
-       * @example 5025
-       */
-      effective_entry_price_usd_pips?: string | null;
-      /**
-       * @description Execution slippage between the offer's indicative entry price and the actual fill price, in basis points. Signed: positive means the fill was worse than the quote, negative means the fill was better. Null until the fill is recorded on chain.
-       * @example 50
-       */
-      effective_slippage_bps?: number | null;
-      /**
-       * @description Original position token units delivered when the position opened (1000000 units = 1 token). Unlike `current.positionTokenUnits` (the live, possibly partially-closed survivor), this is the fixed size credited at open and is the basis for the partial-close minimum. Null until the open fill is recorded on chain.
-       * @example 10000000
-       */
-      position_token_units?: string | null;
-      /**
-       * @description How much of the requested size was actually filled when the position opened, in basis points (10000 = 100%). Computed as actual open notional / requested notional and FROZEN at open — it does NOT change when the position is partially closed. Use this for an 'opened at X% of requested' badge. Null until the open fill is recorded on chain.
-       * @example 9657
-       */
-      initial_fill_bps?: number | null;
-    };
-    CustomerPositionFailure: {
-      /**
-       * @description Failure reason code
-       * @example price_exceeded_tolerance
-       */
-      reason: string;
-    };
-    CustomerPositionUnwind: {
-      /**
-       * @description executed: an unwind that landed on-chain, as recorded by the deleveraging itself. planned: a committed-mode rung that fires if the price reaches triggerPriceUsdPips. triggered: a committed-mode rung whose trigger price was reached, stamped with executedAt. superseded: a committed-mode rung that can no longer fire because a partial close already took the position below its target leverage. Rung rows (planned, triggered, superseded) are the signed ladder and are only returned when the request asks for them; they describe what was promised, while executed rows describe what actually happened.
-       * @example executed
-       * @enum {string}
-       */
-      status: "executed" | "planned" | "superseded" | "triggered";
-      /**
-       * @description The market signal that triggered the risk-model inference behind this unwind (e.g. `spread_blowout`, `depth_decay`, `price_drop_severe`). Null for unwinds not tied to an inference run, such as manually triggered deleveraging.
-       * @example spread_blowout
-       * @enum {string|null}
-       */
-      reason?:
-        | "activity_surge"
-        | "cancel_acceleration"
-        | "crypto_move"
-        | "depth_decay"
-        | "depth_drain"
-        | "depth_entry_drain"
-        | "game_start"
-        | "large_holder"
-        | "last_trade_divergence"
-        | "lead_change"
-        | "post_hard_exit_losing"
-        | "position_exposure"
-        | "price_drop_full_exit"
-        | "price_drop_moderate"
-        | "price_drop_severe"
-        | "price_drop_warning"
-        | "spread_blowout"
-        | "spread_spike"
-        | "spread_warning"
-        | "stale_refresh"
-        | "unknown"
-        | null;
-      /**
-       * @description Leverage after unwind in basis points (20000 = 2x)
-       * @example 30000
-       */
-      after_leverage_bps: number;
-      /**
-       * @description Leverage before unwind in basis points (20000 = 2x)
-       * @example 60000
-       */
-      before_leverage_bps: number;
-      /**
-       * @description ISO 8601 timestamp when the unwind was executed on-chain. Null on planned unwinds, which have not happened yet.
-       * @example 2025-06-02T14:30:00.000Z
-       */
-      executed_at?: string | null;
-      /**
-       * @description Price at which this planned unwind fires, in USD pips (10000 pips = $1). Null on executed unwinds.
-       * @example 4200
-       */
-      trigger_price_usd_pips?: string | null;
-      /**
-       * @description Human-readable explanation of `reason` — a customer-facing sentence describing the market condition that triggered this deleverage. Null whenever `reason` is null.
-       * @example The bid-ask spread widened sharply beyond its recent baseline, signalling thinning liquidity.
-       */
-      reason_detail?: string | null;
-    };
-    CustomerPositionUnwindList: {
-      data: components["schemas"]["CustomerPositionUnwind"][];
-      has_more: boolean;
-      total_count?: number;
-      /**
-       * @description Current leverage of the position in basis points (20000 = 2x), null if not yet calculated
-       * @example 30000
-       */
-      current_leverage_bps: number | null;
-      /**
-       * @description ISO 8601 timestamp when the position was opened on-chain (null if not yet opened)
-       * @example 2025-06-01T12:00:00.000Z
-       */
-      originated_at: string | null;
-      /**
-       * @description Leverage at position origination in basis points (20000 = 2x)
-       * @example 60000
-       */
-      origination_leverage_bps: number;
-    };
-    CustomerCloseAttempt: {
-      /**
-       * @description Outcome of the close attempt. `deferred` means the close could not complete yet and was postponed.
-       * @enum {string}
-       */
-      outcome: "deferred";
-      /**
-       * @description Why the close was deferred. `awaiting_settlement`: the market resolved before the position could be sold, so the remaining tokens will be redeemed when the market settles rather than sold on the order book.
-       * @enum {string}
-       */
-      reason: "awaiting_settlement";
-      /**
-       * @description ISO-8601 timestamp of when the close was requested.
-       * @example 2026-06-15T17:27:11.736Z
-       */
-      deferred_at: string;
-    };
-    CustomerPendingOperation: {
-      /**
-       * @description The lifecycle operation currently in flight on this position. Present whenever the position is mid-operation (open, close, partial close, unwind, liquidate, or settle); null when the position is at rest. Note `status` stays `open` throughout a `partial_close`, so this is the only signal a slice is in flight after a reload.
-       * @enum {string}
-       */
-      type: "open" | "close" | "partial_close" | "unwind" | "liquidate" | "settle";
-      /**
-       * @description Sub-state of the operation: `requested` (submitted, not yet executing), `initiated` (executing on the venue), `pending` (tokens withdrawn, finalizing on chain), `awaiting_settlement` (a close deferred until the market settles). Null when the operation has no distinct phase.
-       * @example initiated
-       * @enum {string|null}
-       */
-      phase?: "requested" | "initiated" | "pending" | "awaiting_settlement" | null;
-      /**
-       * @description Token units involved in the in-flight operation (1000000 units = 1 token). For `partial_close` this is the slice being closed; for `close`/`liquidate` the units withdrawn; for the awaiting-settlement close the remaining tokens. Null when the operation carries no specific token amount.
-       * @example 5000000
-       */
-      token_units?: string | null;
-    };
-    CustomerPositionCurrent: {
-      /**
-       * @description Current book-value leverage in basis points (20000 = 2x)
-       * @example 18000
-       */
-      book_leverage_bps: number;
-      /**
-       * @description Current collateral formatted as USD
-       * @example 2.50
-       */
-      collateral_usd: string;
-      /**
-       * @description Current collateral in USD pips
-       * @example 25000
-       */
-      collateral_usd_pips: string;
-      /**
-       * @description Effective collateral formatted as USD
-       * @example 2.45
-       */
-      effective_collateral_usd: string;
-      /**
-       * @description Effective collateral after fees in USD pips
-       * @example 24500
-       */
-      effective_collateral_usd_pips: string;
-      /**
-       * @deprecated
-       * @description Current leverage in basis points
-       * @example 18000
-       */
-      leverage_bps: number;
-      /**
-       * @description Current market-value leverage in basis points, computed from the live oracle price. Null when the position is insolvent (equity <= 0).
-       * @example 19500
-       */
-      market_leverage_bps?: number | null;
-      /**
-       * @description Current mark price formatted as USD
-       * @example 0.55
-       */
-      mark_price_usd: string;
-      /**
-       * @description Current mark price in USD pips
-       * @example 5500
-       */
-      mark_price_usd_pips: string;
-      /**
-       * @description Unrealized PnL net of all fees (origination + pending lifetime + accrued venue) as return on equity in basis points
-       * @example 1800
-       */
-      net_unrealized_pnl_bps: number;
-      /**
-       * @description Unrealized PnL net of all fees (origination + pending lifetime + accrued venue) formatted as USD
-       * @example 0.45
-       */
-      net_unrealized_pnl_usd: string;
-      /**
-       * @description Unrealized PnL net of all fees (origination + pending lifetime + accrued venue) in USD pips (can be negative)
-       * @example 4500
-       */
-      net_unrealized_pnl_usd_pips: string;
-      /**
-       * @description Current notional formatted as USD
-       * @example 5.50
-       */
-      notional_usd: string;
-      /**
-       * @description Current notional in USD pips
-       * @example 55000
-       */
-      notional_usd_pips: string;
-      /**
-       * @description Smallest partial-close slice the contract will accept right now, in token units (1000000 units = 1 token): `max(5 tokens, 20% of the original opened size)`. Null when the position is not partial-closeable (an operation is already in flight, the open fill isn't recorded yet, or the survivor is below the minimum).
-       * @example 5000000
-       */
-      min_partial_close_token_units?: string | null;
-      /**
-       * @description Largest partial-close slice allowed right now, in token units (1000000 units = 1 token): the full survivor size currently held (`positionTokenUnits`). Null when the position is not partial-closeable.
-       * @example 10000000
-       */
-      max_partial_close_token_units?: string | null;
-      /**
-       * @description Position token units held (1000000 units = 1 token)
-       * @example 10000000
-       */
-      position_token_units: string;
-      /**
-       * @description Fraction of the originally opened size still held, in basis points (10000 = 100%). Computed as current token units / original opened token units. This LEGITIMATELY DECREASES after each partial close (e.g. 7000 = 70% remaining after a 30% close) and is not a fill problem. Null until the open fill is recorded on chain.
-       * @example 7000
-       */
-      remaining_bps?: number | null;
-      /**
-       * @description Total position value formatted as USD
-       * @example 3.00
-       */
-      position_value_usd: string;
-      /**
-       * @description Total position value in USD pips
-       * @example 30000
-       */
-      position_value_usd_pips: string;
-      /**
-       * @description Unrealized PnL as return on equity in basis points (1000 = 10%)
-       * @example 2000
-       */
-      unrealized_pnl_bps: number;
-      /**
-       * @description Unrealized PnL formatted as USD
-       * @example 0.50
-       */
-      unrealized_pnl_usd: string;
-      /**
-       * @description Unrealized PnL in USD pips (can be negative)
-       * @example 5000
-       */
-      unrealized_pnl_usd_pips: string;
-    };
-    CustomerPositionOpenFees: {
-      /**
-       * @description Accrued lifetime fee formatted as USD
-       * @example 0.01
-       */
-      accrued_lifetime_fee_usd: string;
-      /**
-       * @description Accrued lifetime fee in USD pips
-       * @example 100
-       */
-      accrued_lifetime_fee_usd_pips: string;
-      /**
-       * @description Venue (Polymarket) trading fees paid so far on this position, summed across open and any force-unwind exchange transactions, formatted as USD.
-       * @example 0.02
-       */
-      accrued_venue_fee_usd: string;
-      /**
-       * @description Venue trading fees paid so far on this position in USD pips.
-       * @example 200
-       */
-      accrued_venue_fee_usd_pips: string;
-      /**
-       * @description Lifetime fee APR in basis points
-       * @example 500
-       */
-      lifetime_apr_bps: number;
-      /**
-       * @description Pending lifetime fee formatted as USD
-       * @example 0.005
-       */
-      pending_lifetime_fee_usd: string;
-      /**
-       * @description Pending lifetime fee in USD pips
-       * @example 50
-       */
-      pending_lifetime_fee_usd_pips: string;
-      /**
-       * @description Sum of all fees accrued or owed so far (origination + accrued lifetime + pending lifetime + accrued venue), formatted as USD. Mirrors closed positions' `fees.totalFeesUsd`.
-       * @example 0.085
-       */
-      total_fees_usd: string;
-      /**
-       * @description Sum of all fees accrued or owed so far (origination + accrued lifetime + pending lifetime + accrued venue) in USD pips.
-       * @example 850
-       */
-      total_fees_usd_pips: string;
-    };
-    CustomerPositionRisk: {
-      /**
-       * @description Current liquidation price formatted as USD
-       * @example 0.35
-       */
-      current_liquidation_price_usd: string;
-      /**
-       * @description Current liquidation price in USD pips
-       * @example 3500
-       */
-      current_liquidation_price_usd_pips: string;
-      /**
-       * @description Margin health 0-10000 (10000 at entry, 0 at liquidation)
-       * @example 7500
-       */
-      health_bps: number;
-      /**
-       * @description Buffer to liquidation in basis points
-       * @example 500
-       */
-      liquidation_buffer_bps: number;
-      /**
-       * @description Liquidation fee in basis points
-       * @example 200
-       */
-      liquidation_fee_bps: number;
-      /**
-       * @description Dollar distance to liquidation formatted as USD
-       * @example 0.50
-       */
-      margin_buffer_usd: string;
-      /**
-       * @description Dollar distance to liquidation in USD pips
-       * @example 5000
-       */
-      margin_buffer_usd_pips: string;
-    };
-    CustomerPositionTiming: {
-      /** @description Whether settlement is pending (market resolved or voided, settlement not yet executed) */
-      is_settlement_pending: boolean;
-      /** @description Whether the market was voided (closed with no winner, 50/50 payout at $0.50 per token) */
-      is_voided: boolean;
-      /**
-       * @description ISO 8601 timestamp when market closes
-       * @example 2025-01-20T12:00:00.000Z
-       */
-      market_close_time?: string;
-      /**
-       * @description Market status from the prediction market provider. When 'determined' or 'finalized', mark price reflects the settlement outcome ($1 or $0)
-       * @example active
-       * @enum {string}
-       */
-      market_status:
-        | "active"
-        | "amended"
-        | "closed"
-        | "determined"
-        | "disputed"
-        | "finalized"
-        | "inactive"
-        | "initialized";
-      /**
-       * @description Where this market sits on the road to settlement. `none` — still trading, nothing pending. `awaiting_resolution` — the market has closed and the outcome is decided, but the prediction market provider has not yet published the result on chain, so nothing can be redeemed yet. `settling` — the result is published and we are settling the position. `voided` — the market was voided and every token pays out at $0.50. `unresolved_upstream` — the market disappeared from the provider before publishing a result and may never resolve.
-       * @example awaiting_resolution
-       * @enum {string}
-       */
-      settlement_state: "awaiting_resolution" | "none" | "settling" | "unresolved_upstream" | "voided";
-      /**
-       * @description Minutes until market closes
-       * @example 1440
-       */
-      time_to_close_minutes?: number;
-    };
-    CustomerOpenPosition: {
-      /** @description Entry details */
-      entry: components["schemas"]["CustomerPositionEntry"];
-      /** @description Failure details if the position failed */
-      failure?: components["schemas"]["CustomerPositionFailure"];
-      /**
-       * @description Position ID
-       * @example dm_pos_abc123
-       */
-      id: string;
-      /**
-       * @description Prediction market provider
-       * @enum {string}
-       */
-      provider: "polymarket";
-      /**
-       * @description Market side
-       * @enum {string}
-       */
-      side: "yes" | "no";
-      /**
-       * @description Simplified position status. A position that was deleveraged almost entirely and then force-sold for a trivial remainder reports 'settled' once the market resolves against it. The 'status' query parameter still filters on the underlying mechanism, so such a position is returned by status=liquidated.
-       * @enum {string}
-       */
-      status:
-        | "pending"
-        | "open"
-        | "unwinding"
-        | "closing"
-        | "settling"
-        | "closed"
-        | "settled"
-        | "liquidated"
-        | "cancelled";
-      /** @description Inline unwind history. Only present when the request includes `expand=unwinds`; omitted otherwise. */
-      unwinds?: components["schemas"]["CustomerPositionUnwindList"] | null;
-      /** @description Current position state */
-      current: components["schemas"]["CustomerPositionCurrent"];
-      /** @description Fee details for open position */
-      fees: components["schemas"]["CustomerPositionOpenFees"];
-      /** @description Risk metrics */
-      risk: components["schemas"]["CustomerPositionRisk"];
-      /** @description Timing information */
-      timing: components["schemas"]["CustomerPositionTiming"];
-      /**
-       * @description Time-weighted average structural leverage in basis points over position lifetime (20000 = 2x)
-       * @example 84000
-       */
-      effective_leverage_bps: number;
-      /**
-       * @description Market ticker identifier
-       * @example TRUMP-2024-WIN
-       */
-      market_ticker: string;
-      /** @description Market title */
-      market_title?: string;
-      /** @description On-chain position key (bytes32) for requestClose", example: "0xabc123... */
-      on_chain_position_key: string;
-      /**
-       * @description Wallet address (Solana public key or EVM address)
-       * @example 7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU
-       */
-      wallet_address: string;
-      /** @description The committed-mode ladder this position was opened on: one row per planned unwind, each with a status of planned, triggered or superseded. Only present when the request includes `expand=planned_unwinds`; omitted otherwise, and empty on adaptive positions. */
-      planned_unwinds?: components["schemas"]["CustomerPositionUnwindList"] | null;
-      /**
-       * @deprecated
-       * @description Deprecated — use `pendingOperation` (a deferred close now surfaces as `{ type: 'close', phase: 'awaiting_settlement' }`). Details of a close request that could not complete and was deferred. Null unless the customer requested a close that is now waiting on market settlement to redeem the remaining tokens.
-       */
-      close_attempt?: components["schemas"]["CustomerCloseAttempt"] | null;
-      /** @description The lifecycle operation currently in flight on this position, or null when the position is at rest. Survives reload (unlike the ephemeral websocket events), so a UI can show that a close / partial close / unwind / settle is in progress after re-fetching REST. */
-      pending_operation?: components["schemas"]["CustomerPendingOperation"] | null;
-    };
-    CustomerPositionClosedFees: {
-      /**
-       * @description Lifetime fee APR in basis points
-       * @example 500
-       */
-      lifetime_apr_bps: number;
-      /**
-       * @deprecated
-       * @description Deprecated — use `entry.originationFeeBps`. Same value, kept for backwards compatibility.
-       * @example 100
-       */
-      origination_fee_bps: number;
-      /**
-       * @deprecated
-       * @description Deprecated — use `entry.protocolOriginationFeeBps`. Same value, kept for backwards compatibility.
-       * @example 80
-       */
-      protocol_origination_fee_bps: number;
-      /**
-       * @deprecated
-       * @description Deprecated — use `entry.partnerOriginationFeeBps`. Same value, kept for backwards compatibility.
-       * @example 20
-       */
-      partner_origination_fee_bps: number;
-      /**
-       * @deprecated
-       * @description Deprecated — use `entry.originationFeeUsd`. Same value, kept for backwards compatibility.
-       * @example 0.05
-       */
-      origination_fee_usd: string;
-      /**
-       * @deprecated
-       * @description Deprecated — use `entry.originationFeeUsdPips`. Same value, kept for backwards compatibility.
-       * @example 500
-       */
-      origination_fee_usd_pips: string;
-      /**
-       * @description Total blended fees formatted as USD
-       * @example 0.085
-       */
-      total_fees_usd: string;
-      /**
-       * @description Total blended fees (origination + lifetime + liquidation + venue) in USD pips
-       * @example 850
-       */
-      total_fees_usd_pips: string;
-      /**
-       * @description Total lifetime fee formatted as USD
-       * @example 0.015
-       */
-      total_lifetime_fee_usd: string;
-      /**
-       * @description Total lifetime fee collected in USD pips
-       * @example 150
-       */
-      total_lifetime_fee_usd_pips: string;
-      /**
-       * @description Total venue (Polymarket) trading fees collected across the position lifetime (open + close/liquidation/settle + force-unwind), formatted as USD.
-       * @example 0.02
-       */
-      total_venue_fee_usd: string;
-      /**
-       * @description Total venue trading fees collected across the position lifetime in USD pips.
-       * @example 200
-       */
-      total_venue_fee_usd_pips: string;
-    };
-    CustomerPositionResult: {
-      /**
-       * @description ISO 8601 timestamp when position was closed
-       * @example 2025-01-16T14:30:00.000Z
-       */
-      closed_at: string;
-      /**
-       * @description Collected lifetime fee formatted as USD
-       * @example 0.015
-       */
-      collected_lifetime_fee_usd: string;
-      /**
-       * @description Collected lifetime fee in USD pips
-       * @example 150
-       */
-      collected_lifetime_fee_usd_pips: string;
-      /**
-       * @description Collected liquidation fee formatted as USD
-       * @example 0.00
-       */
-      collected_liquidation_fee_usd: string;
-      /**
-       * @description Collected liquidation fee in USD pips
-       * @example 0
-       */
-      collected_liquidation_fee_usd_pips: string;
-      /**
-       * @description Volume-weighted notional realized across all unwinds and the final close, formatted as USD. Null for reverted or cancelled positions.
-       * @example 5.25
-       */
-      exit_notional_usd?: string | null;
-      /**
-       * @description Exit notional in USD pips. Null for reverted or cancelled positions.
-       * @example 52500
-       */
-      exit_notional_usd_pips?: string | null;
-      /**
-       * @description Realized PnL net of all fees (origination + lifetime + liquidation + venue) as return on equity in basis points
-       * @example 1700
-       */
-      net_realized_pnl_bps: number;
-      /**
-       * @description Realized PnL net of all fees (origination + lifetime + liquidation + venue) formatted as USD
-       * @example 0.435
-       */
-      net_realized_pnl_usd: string;
-      /**
-       * @description Realized PnL net of all fees (origination + lifetime + liquidation + venue) in USD pips (can be negative)
-       * @example 4350
-       */
-      net_realized_pnl_usd_pips: string;
-      /**
-       * @description Proceeds formatted as USD
-       * @example 3.00
-       */
-      proceeds_usd: string;
-      /**
-       * @description Proceeds returned to user in USD pips
-       * @example 30000
-       */
-      proceeds_usd_pips: string;
-      /**
-       * @description Realized PnL formatted as USD
-       * @example 0.50
-       */
-      realized_pnl_usd: string;
-      /**
-       * @description Realized PnL in USD pips (can be negative)
-       * @example 5000
-       */
-      realized_pnl_usd_pips: string;
-    };
-    CustomerClosedPosition: {
-      /** @description Entry details */
-      entry: components["schemas"]["CustomerPositionEntry"];
-      /** @description Failure details if the position failed */
-      failure?: components["schemas"]["CustomerPositionFailure"];
-      /**
-       * @description Position ID
-       * @example dm_pos_abc123
-       */
-      id: string;
-      /**
-       * @description Prediction market provider
-       * @enum {string}
-       */
-      provider: "polymarket";
-      /**
-       * @description Market side
-       * @enum {string}
-       */
-      side: "yes" | "no";
-      /**
-       * @description Simplified position status. A position that was deleveraged almost entirely and then force-sold for a trivial remainder reports 'settled' once the market resolves against it. The 'status' query parameter still filters on the underlying mechanism, so such a position is returned by status=liquidated.
-       * @enum {string}
-       */
-      status:
-        | "pending"
-        | "open"
-        | "unwinding"
-        | "closing"
-        | "settling"
-        | "closed"
-        | "settled"
-        | "liquidated"
-        | "cancelled";
-      /** @description Inline unwind history. Only present when the request includes `expand=unwinds`; omitted otherwise. */
-      unwinds?: components["schemas"]["CustomerPositionUnwindList"] | null;
-      /** @description Fee details for closed position */
-      fees: components["schemas"]["CustomerPositionClosedFees"];
-      /** @description Position result/outcome */
-      result: components["schemas"]["CustomerPositionResult"];
-      /**
-       * @description Time-weighted average structural leverage in basis points over position lifetime (20000 = 2x)
-       * @example 84000
-       */
-      effective_leverage_bps: number;
-      /**
-       * @description Market ticker identifier
-       * @example TRUMP-2024-WIN
-       */
-      market_ticker: string;
-      /** @description Market title */
-      market_title?: string;
-      /** @description On-chain position key (bytes32) for requestClose", example: "0xabc123... */
-      on_chain_position_key: string;
-      /**
-       * @description Wallet address (Solana public key or EVM address)
-       * @example 7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU
-       */
-      wallet_address: string;
-      /** @description The committed-mode ladder this position was opened on: one row per planned unwind, each with a status of planned, triggered or superseded. Only present when the request includes `expand=planned_unwinds`; omitted otherwise, and empty on adaptive positions. */
-      planned_unwinds?: components["schemas"]["CustomerPositionUnwindList"] | null;
-      /**
-       * @description Reason the position was closed. Reports 'settled' for a position that was deleveraged almost entirely and then force-sold for a trivial remainder on a market that resolved against it.
-       * @enum {string}
-       */
-      close_reason: "cancelled" | "closed" | "liquidated" | "reverted" | "settled";
-      /**
-       * @description Why the position was reverted before it opened. Non-null only when `close_reason` is `reverted`: `exchange_unavailable` (the prediction-market venue was temporarily unavailable — safe to retry), `slippage_exceeded` (price moved beyond tolerance before the order filled), or `unknown`.
-       * @enum {string|null}
-       */
-      revert_reason?: "exchange_unavailable" | "slippage_exceeded" | "unknown" | null;
-    };
     CustomerPartialClose: {
       /**
        * @description ISO 8601 timestamp when the partial close settled on-chain
@@ -1901,28 +2045,17 @@ export interface components {
        */
       risk_mode: "adaptive" | "committed";
     };
-    CommittedUnwindUnavailableReason: {
-      /**
-       * @description Machine-readable reason committed mode cannot be offered for this quote
-       * @example cryptoMarket
-       * @enum {string}
-       */
-      code:
-        | "cryptoMarket"
-        | "illegibleMarginTooLarge"
-        | "illegibleTooManyUnwinds"
-        | "invertedRiskBands"
-        | "lateGameSoccer"
-        | "notOfferedOnDeskQuotes";
-      /** @description Human-readable explanation of the same reason */
-      message: string;
-    };
     PlannedUnwind: {
       /**
        * @description Order in which this unwind fires, starting at 0
        * @example 0
        */
       sequence: number;
+      /**
+       * @description Price at which this unwind fires, formatted as USD
+       * @example 0.42
+       */
+      trigger_price_usd: string;
       /**
        * @description Price at which this unwind fires, in USD pips (10000 pips = $1)
        * @example 4200
@@ -1934,27 +2067,40 @@ export interface components {
        */
       target_leverage_bps: number;
       /**
+       * @description Estimated whole tokens sold to reach the target. An estimate only — the executed amount depends on the fill.
+       * @example 30
+       */
+      estimated_sell_tokens: string;
+      /**
        * @description Estimated token units sold to reach the target (1000000 units = 1 token). An estimate only — the executed amount depends on the fill.
        * @example 30000000
        */
-      token_units_to_sell_estimate: string;
+      estimated_sell_token_units: string;
     };
     CommittedUnwinds: {
       /** @description Whether committed mode can be offered for this quote */
       available: boolean;
-      /** @description Why committed mode is unavailable. Null when it is available. */
-      unavailable_reason?: components["schemas"]["CommittedUnwindUnavailableReason"] | null;
+      /**
+       * @description Extra margin the user must post on top of collateral, formatted as USD
+       * @example 67.00
+       */
+      margin_required_usd?: string | null;
       /**
        * @description Extra margin the user must post on top of collateral, in USDC units (1000000 units = 1 USDC)
        * @example 67000000
        */
       margin_required_usdc_units?: string | null;
       /**
+       * @description Price at which selling the remaining tokens repays the loan in full, formatted as USD
+       * @example 0.27
+       */
+      debt_clear_price_usd?: string | null;
+      /**
        * @description Price at which selling the remaining tokens repays the loan in full, in USD pips
        * @example 2700
        */
       debt_clear_price_usd_pips?: string | null;
-      /** @description The pre-committed unwinds, in the order they fire. Empty when committed mode is unavailable. */
+      /** @description The pre-committed unwinds, in the order they fire. Null when committed mode is unavailable. */
       planned_unwinds?: components["schemas"]["PlannedUnwind"][] | null;
     };
     CustomerOfferMaxGain: {
@@ -2040,6 +2186,12 @@ export interface components {
        * @example 0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890
        */
       polymarket_market_id: string;
+      /**
+       * @description Which Polymarket share ledger the market uses, numbered as the vault numbers it: 1 = Conditional Tokens (CTF), 2 = Polymarket Protocol V2 (PositionManager). Pass it as `protocolVersion` to the vault. A version 2 quote is signed for `createPositionWithVersion` / `createPositionWithMarginAndVersion` (or their push-funded twins) and is rejected by the create functions without a version.
+       * @example 1
+       * @enum {number}
+       */
+      polymarket_protocol_version: 1 | 2;
       /** @description EIP-191 signature for contract create position */
       contract_signature: string;
       /**
@@ -2053,19 +2205,18 @@ export interface components {
        */
       polygon_vault_contract_address: string;
       /**
-       * @description Vault function this quote's signature authorizes. createPositionWithMargin for committed quotes, createPosition otherwise. A signature for one will not authorize the other.
-       * @example createPosition
-       * @enum {string}
-       */
-      polygon_vault_function_name: "createPosition" | "createPositionWithMargin";
-      /**
        * @description Risk mode this quote was issued in. A committed request is answered in committed mode or rejected, so this only reports adaptive when adaptive was asked for.
        * @example adaptive
        * @enum {string}
        */
       risk_mode: "adaptive" | "committed";
-      /** @description Committed-unwind mode for this quote: the pre-committed unwinds and the extra margin they require, or the reason the mode cannot be offered. */
+      /** @description Committed-unwind mode for this quote: the pre-committed unwinds and the extra margin they require, or whether the mode can be offered at all. */
       committed_unwinds?: components["schemas"]["CommittedUnwinds"];
+      /**
+       * @description Extra margin locked in the vault on top of collateral, formatted as USD. Zero on adaptive quotes.
+       * @example 0.00
+       */
+      margin_usd: string;
       /**
        * @description Extra margin locked in the vault on top of collateral, in USDC units (1,000,000 units = 1 USDC). Zero on adaptive quotes. Included in totalUserAmountUsdcUnits.
        * @example 0
@@ -2547,13 +2698,62 @@ export interface operations {
         status?: "open" | "unwinding" | "pending" | "closing" | "closed" | "settled" | "liquidated";
         /** @description Filter positions by lifecycle group: `active` (open + unwinding + pending + closing + settling) or `inactive` (closed + settled + liquidated + cancelled). Mutually exclusive with `status`. */
         state?: "active" | "inactive";
-        /** @description Filter positions by market ticker */
+        /**
+         * @deprecated
+         * @description Deprecated — use GET /v1/prediction-markets/markets/{ticker}/positions instead. Filter positions by market ticker.
+         */
         ticker?: string;
         /** @description Filter positions by on-chain position token id */
         token_id?: string;
       };
       header?: never;
       path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            data: (components["schemas"]["CustomerOpenPosition"] | components["schemas"]["CustomerClosedPosition"])[];
+            has_more: boolean;
+            /** @description Total matching records. Present only when expand=total_count. */
+            total_count?: number;
+          };
+        };
+      };
+    };
+  };
+  CustomerMarketPositionController_listMarketPositions: {
+    parameters: {
+      query?: {
+        /** @description Maximum number of results to return (1-100) */
+        limit?: number;
+        /** @description Cursor for forward pagination. Mutually exclusive with endingBefore. */
+        starting_after?: string;
+        /** @description Cursor for backward pagination. Mutually exclusive with startingAfter. */
+        ending_before?: string;
+        /** @description Comma-separated list of additional fields to include in the response. Allowed values: unwinds, planned_unwinds, total_count. */
+        expand?: string;
+        /** @description Field to sort positions by */
+        sort_by?: "created_at" | "closed_at";
+        /** @description Sort direction */
+        sort_direction?: "asc" | "desc";
+        /** @description Filter positions by a single status. Mutually exclusive with `state`. */
+        status?: "open" | "unwinding" | "pending" | "closing" | "closed" | "settled" | "liquidated";
+        /** @description Filter positions by lifecycle group: `active` (open + unwinding + pending + closing + settling) or `inactive` (closed + settled + liquidated + cancelled). Mutually exclusive with `status`. */
+        state?: "active" | "inactive";
+        /** @description Filter positions by on-chain position token id */
+        token_id?: string;
+      };
+      header?: never;
+      path: {
+        /** @description Market ticker identifier */
+        ticker: string;
+      };
       cookie?: never;
     };
     requestBody?: never;
@@ -2696,6 +2896,105 @@ export interface operations {
       };
     };
   };
+  CustomerEventController_listEventMarkets: {
+    parameters: {
+      query?: {
+        /** @description Maximum number of results to return (1-100) */
+        limit?: number;
+        /** @description Cursor for forward pagination. Mutually exclusive with endingBefore. */
+        starting_after?: string;
+        /** @description Cursor for backward pagination. Mutually exclusive with startingAfter. */
+        ending_before?: string;
+        /** @description Comma-separated list of additional fields to include in the response. Allowed values: total_count, prices. */
+        expand?: string;
+        /** @description Sort order for results. 'ticker_asc' sorts alphabetically, 'depth_desc' sorts by market depth (largest first), 'discovered_at_desc' sorts by discovery date (newest markets first). */
+        sort?: "ticker_asc" | "depth_desc" | "discovered_at_desc";
+        /** @description Filter for markets currently accepting new positions */
+        accepting_new_positions?: boolean;
+        /** @description Filter markets by category */
+        category?: "crypto" | "sport";
+        /** @description Filter markets by prediction market provider */
+        provider?: "polymarket";
+        /** @description Filter markets by status */
+        status?: "active" | "closed" | "determined" | "finalized" | "disputed";
+        /** @description Free-text search query matched against market ticker and title */
+        query?: string;
+      };
+      header?: never;
+      path: {
+        /** @description Event ticker identifier, as returned in the event block of any market */
+        event_ticker: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            data: components["schemas"]["CustomerMarket"][];
+            has_more: boolean;
+            /** @description Total matching records. Present only when expand=total_count. */
+            total_count?: number;
+          };
+        };
+      };
+    };
+  };
+  CustomerEventController_listEventPositions: {
+    parameters: {
+      query?: {
+        /** @description Maximum number of results to return (1-100) */
+        limit?: number;
+        /** @description Cursor for forward pagination. Mutually exclusive with endingBefore. */
+        starting_after?: string;
+        /** @description Cursor for backward pagination. Mutually exclusive with startingAfter. */
+        ending_before?: string;
+        /** @description Comma-separated list of additional fields to include in the response. Allowed values: unwinds, planned_unwinds, total_count. */
+        expand?: string;
+        /** @description Field to sort positions by */
+        sort_by?: "created_at" | "closed_at";
+        /** @description Sort direction */
+        sort_direction?: "asc" | "desc";
+        /** @description Filter positions by a single status. Mutually exclusive with `state`. */
+        status?: "open" | "unwinding" | "pending" | "closing" | "closed" | "settled" | "liquidated";
+        /** @description Filter positions by lifecycle group: `active` (open + unwinding + pending + closing + settling) or `inactive` (closed + settled + liquidated + cancelled). Mutually exclusive with `status`. */
+        state?: "active" | "inactive";
+        /**
+         * @deprecated
+         * @description Deprecated — use GET /v1/prediction-markets/markets/{ticker}/positions instead. Filter positions by market ticker.
+         */
+        ticker?: string;
+        /** @description Filter positions by on-chain position token id */
+        token_id?: string;
+      };
+      header?: never;
+      path: {
+        /** @description Event ticker identifier, as returned in the event block of any market */
+        event_ticker: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            data: (components["schemas"]["CustomerOpenPosition"] | components["schemas"]["CustomerClosedPosition"])[];
+            has_more: boolean;
+            /** @description Total matching records. Present only when expand=total_count. */
+            total_count?: number;
+          };
+        };
+      };
+    };
+  };
   CustomerPositionController_getPositionById: {
     parameters: {
       query?: {
@@ -2788,6 +3087,105 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["CustomerPositionUnwindList"];
+        };
+      };
+    };
+  };
+  CustomerSeriesController_listSeriesMarkets: {
+    parameters: {
+      query?: {
+        /** @description Maximum number of results to return (1-100) */
+        limit?: number;
+        /** @description Cursor for forward pagination. Mutually exclusive with endingBefore. */
+        starting_after?: string;
+        /** @description Cursor for backward pagination. Mutually exclusive with startingAfter. */
+        ending_before?: string;
+        /** @description Comma-separated list of additional fields to include in the response. Allowed values: total_count, prices. */
+        expand?: string;
+        /** @description Sort order for results. 'ticker_asc' sorts alphabetically, 'depth_desc' sorts by market depth (largest first), 'discovered_at_desc' sorts by discovery date (newest markets first). */
+        sort?: "ticker_asc" | "depth_desc" | "discovered_at_desc";
+        /** @description Filter for markets currently accepting new positions */
+        accepting_new_positions?: boolean;
+        /** @description Filter markets by category */
+        category?: "crypto" | "sport";
+        /** @description Filter markets by prediction market provider */
+        provider?: "polymarket";
+        /** @description Filter markets by status */
+        status?: "active" | "closed" | "determined" | "finalized" | "disputed";
+        /** @description Free-text search query matched against market ticker and title */
+        query?: string;
+      };
+      header?: never;
+      path: {
+        /** @description Series ticker identifier, as returned in the event block of any market */
+        series_ticker: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            data: components["schemas"]["CustomerMarket"][];
+            has_more: boolean;
+            /** @description Total matching records. Present only when expand=total_count. */
+            total_count?: number;
+          };
+        };
+      };
+    };
+  };
+  CustomerSeriesController_listSeriesPositions: {
+    parameters: {
+      query?: {
+        /** @description Maximum number of results to return (1-100) */
+        limit?: number;
+        /** @description Cursor for forward pagination. Mutually exclusive with endingBefore. */
+        starting_after?: string;
+        /** @description Cursor for backward pagination. Mutually exclusive with startingAfter. */
+        ending_before?: string;
+        /** @description Comma-separated list of additional fields to include in the response. Allowed values: unwinds, planned_unwinds, total_count. */
+        expand?: string;
+        /** @description Field to sort positions by */
+        sort_by?: "created_at" | "closed_at";
+        /** @description Sort direction */
+        sort_direction?: "asc" | "desc";
+        /** @description Filter positions by a single status. Mutually exclusive with `state`. */
+        status?: "open" | "unwinding" | "pending" | "closing" | "closed" | "settled" | "liquidated";
+        /** @description Filter positions by lifecycle group: `active` (open + unwinding + pending + closing + settling) or `inactive` (closed + settled + liquidated + cancelled). Mutually exclusive with `status`. */
+        state?: "active" | "inactive";
+        /**
+         * @deprecated
+         * @description Deprecated — use GET /v1/prediction-markets/markets/{ticker}/positions instead. Filter positions by market ticker.
+         */
+        ticker?: string;
+        /** @description Filter positions by on-chain position token id */
+        token_id?: string;
+      };
+      header?: never;
+      path: {
+        /** @description Series ticker identifier, as returned in the event block of any market */
+        series_ticker: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            data: (components["schemas"]["CustomerOpenPosition"] | components["schemas"]["CustomerClosedPosition"])[];
+            has_more: boolean;
+            /** @description Total matching records. Present only when expand=total_count. */
+            total_count?: number;
+          };
         };
       };
     };

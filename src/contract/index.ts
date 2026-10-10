@@ -9,6 +9,8 @@ export { buildCreatePositionTx, buildApproveTx, buildRequestCloseTx, buildReques
 export type {
   CreatePositionTxData,
   CreatePositionWithMarginTxData,
+  CreatePositionWithVersionTxData,
+  CreatePositionWithMarginAndVersionTxData,
   OpenPositionTxData,
   ApproveTxData,
   RequestCloseTxData,
@@ -16,6 +18,8 @@ export type {
 } from "./build-tx";
 
 export { isCommittedQuote } from "./risk-mode";
+
+export { isProtocolV2Quote, polymarketProtocolVersions } from "./protocol-version";
 
 export {
   depositWalletFactoryAddress,
